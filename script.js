@@ -15,6 +15,18 @@ const countrySearchForm = document.querySelector(".country-search");
 const countrySearchInput = document.querySelector(".country-search-input");
 const countryNameOutlut = document.querySelector(".country-name");
 const countryFlagOutput = document.querySelector(".country-flag");
+const adminLoginButton = document.querySelector(".admin-login-button");
+const adminModal = document.querySelector(".admin-modal");
+const adminCloseButton = document.querySelector(".admin-close-button");
+const adminLoginForm = document.querySelector(".admin-login-form");
+const adminDataForm = document.querySelector(".admin-data-form");
+const adminPasswordInput = document.querySelector(".admin-password-input");
+const adminCountrySelect = document.querySelector(".admin-country-select");
+const adminTrainerInput = document.querySelector(".admin-trainer-input");
+const adminStartInput = document.querySelector(".admin-start-input");
+const adminTrainingInput = document.querySelector(".admin-training-input");
+const adminParticipantInput = document.querySelector(".admin-participant-input");
+const adminMessage = document.querySelector(".admin-message");
 
 let zoomLevel = 1;
 const zoomStep = 0.1;
@@ -66,6 +78,99 @@ const defaultProfile = {
   startYear: "Keine Angabe",
   trainingCount: "Keine Angabe",
   participantCount: "Keine Angabe",
+};
+
+const setAdminMessage = (message) => {
+  if (adminMessage) {
+    adminMessage.textContent = message;
+  }
+};
+
+const callAdminApi = async (payload) => {
+  const response = await fetch("/.netlify/functions/admin", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result.error || "Admin Anfrage fehlgeschlagen.");
+  }
+
+  return result;
+};
+
+const fillAdminCountrySelect = () => {
+  if (!adminCountrySelect) return;
+
+  const currentValue = adminCountrySelect.value;
+  const countryNames = Object.keys(countryProfiles).sort((a, b) =>
+    a.localeCompare(b, "de"),
+  );
+
+  adminCountrySelect.innerHTML = "";
+
+  countryNames.forEach((countryName) => {
+    const option = document.createElement("option");
+    option.value = countryName;
+    option.textContent = countryName;
+    adminCountrySelect.appendChild(option);
+  });
+
+  if (currentValue && countryProfiles[currentValue]) {
+    adminCountrySelect.value = currentValue;
+  }
+
+  updateAdminFormValues();
+};
+
+const updateAdminFormValues = () => {
+  if (!adminCountrySelect) return;
+
+  const profile = countryProfiles[adminCountrySelect.value] || defaultProfile;
+  adminTrainerInput.value =
+    profile.trainerCount === "Keine Angabe" ? "" : profile.trainerCount;
+  adminStartInput.value =
+    profile.startYear === "Keine Angabe" ? "" : profile.startYear;
+  adminTrainingInput.value =
+    profile.trainingCount === "Keine Angabe" ? "" : profile.trainingCount;
+  adminParticipantInput.value =
+    profile.participantCount === "Keine Angabe" ? "" : profile.participantCount;
+};
+
+const showAdminDataForm = () => {
+  adminLoginForm?.classList.add("hide");
+  adminDataForm?.classList.remove("hide");
+  fillAdminCountrySelect();
+};
+
+const openAdminModal = async () => {
+  adminModal?.classList.remove("hide");
+  setAdminMessage("");
+
+  try {
+    const status = await callAdminApi({ action: "status" });
+    if (status.authenticated) {
+      showAdminDataForm();
+    } else {
+      adminLoginForm?.classList.remove("hide");
+      adminDataForm?.classList.add("hide");
+      adminPasswordInput?.focus();
+    }
+  } catch (error) {
+    adminLoginForm?.classList.remove("hide");
+    adminDataForm?.classList.add("hide");
+    setAdminMessage(error.message);
+  }
+};
+
+const closeAdminModal = () => {
+  adminModal?.classList.add("hide");
+  adminPasswordInput.value = "";
+  setAdminMessage("");
 };
 
 const germanRegionNames = new Intl.DisplayNames(["de"], { type: "region" });
@@ -249,6 +354,7 @@ fetch(googleSheetUrl)
       }
     }
     console.log("Daten von Google Sheet geladen:", countryProfiles);
+    fillAdminCountrySelect();
     updateActiveCountryHighlights();
   })
   .catch((error) =>
@@ -350,6 +456,74 @@ countrySearchForm?.addEventListener("submit", (event) => {
   selectedActiveCountryKeys.add(getCountryKey(foundCountry));
   updateActiveCountryHighlights();
   openCountry(foundCountry);
+});
+
+adminLoginButton?.addEventListener("click", openAdminModal);
+adminCloseButton?.addEventListener("click", closeAdminModal);
+adminModal?.addEventListener("click", (event) => {
+  if (event.target === adminModal) {
+    closeAdminModal();
+  }
+});
+adminCountrySelect?.addEventListener("change", updateAdminFormValues);
+
+adminLoginForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const submitButton = adminLoginForm.querySelector("button");
+  submitButton.disabled = true;
+  setAdminMessage("Login wird geprüft...");
+
+  try {
+    await callAdminApi({
+      action: "login",
+      password: adminPasswordInput.value,
+    });
+    adminPasswordInput.value = "";
+    showAdminDataForm();
+    setAdminMessage("Eingeloggt.");
+  } catch (error) {
+    setAdminMessage(error.message);
+  } finally {
+    submitButton.disabled = false;
+  }
+});
+
+adminDataForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const submitButton = adminDataForm.querySelector("button");
+  submitButton.disabled = true;
+  setAdminMessage("Daten werden gespeichert...");
+
+  const country = adminCountrySelect.value;
+  const profile = {
+    trainerCount: adminTrainerInput.value.trim(),
+    startYear: adminStartInput.value.trim(),
+    trainingCount: adminTrainingInput.value.trim(),
+    participantCount: adminParticipantInput.value.trim(),
+  };
+
+  try {
+    await callAdminApi({
+      action: "save",
+      country,
+      ...profile,
+    });
+
+    countryProfiles[country] = {
+      trainerCount: profile.trainerCount || "Keine Angabe",
+      startYear: profile.startYear || "Keine Angabe",
+      trainingCount: profile.trainingCount || "Keine Angabe",
+      participantCount: profile.participantCount || "Keine Angabe",
+    };
+    normalizedCountryProfiles[normalizeCountryName(country)] =
+      countryProfiles[country];
+    updateActiveCountryHighlights();
+    setAdminMessage("Gespeichert. Google Sheet wurde aktualisiert.");
+  } catch (error) {
+    setAdminMessage(error.message);
+  } finally {
+    submitButton.disabled = false;
+  }
 });
 
 countries.forEach((country) => {
