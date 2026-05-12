@@ -146,29 +146,44 @@ const findHeaderIndex = (headers, searchTerm, fallback) => {
   return index === -1 ? fallback : index;
 };
 
-const saveCountryData = async (data) => {
-  const accessToken = await getGoogleAccessToken();
-  const spreadsheetId = process.env.GOOGLE_SHEET_ID || DEFAULT_SHEET_ID;
-  const sheetName = process.env.GOOGLE_SHEET_NAME || "Sheet1";
+const getSheetConfig = () => ({
+  spreadsheetId: process.env.GOOGLE_SHEET_ID || DEFAULT_SHEET_ID,
+  sheetName: process.env.GOOGLE_SHEET_NAME || "Sheet1",
+});
+
+const getSheetRows = async (accessToken, spreadsheetId, sheetName) => {
   const encodedRange = encodeURIComponent(`${quoteSheetName(sheetName)}!A:Z`);
   const valuesPath = `${spreadsheetId}/values/${encodedRange}`;
   const sheet = await sheetsRequest(accessToken, valuesPath);
-  const rows = sheet.values || [];
-  const headers = rows[0] || ["Land", "Trainer", "Startjahr", "Trainings", "Teilnehmer"];
-  const countryIndex = findHeaderIndex(headers, "land", 0);
-  const trainerIndex = findHeaderIndex(headers, "trainer", 1);
-  const startIndex = findHeaderIndex(headers, "startjahr", 2);
-  const trainingIndex = findHeaderIndex(headers, "training", 3);
-  const participantIndex = findHeaderIndex(headers, "teilnehmer", 4);
-  const maxIndex = Math.max(
-    countryIndex,
-    trainerIndex,
-    startIndex,
-    trainingIndex,
-    participantIndex,
+  return sheet.values || [];
+};
+
+const getSheetColumns = (headers) => ({
+  countryIndex: findHeaderIndex(headers, "land", 0),
+  trainerIndex: findHeaderIndex(headers, "trainer", 1),
+  startIndex: findHeaderIndex(headers, "startjahr", 2),
+  trainingIndex: findHeaderIndex(headers, "training", 3),
+  participantIndex: findHeaderIndex(headers, "teilnehmer", 4),
+});
+
+const getMaxColumnIndex = (columns) =>
+  Math.max(
+    columns.countryIndex,
+    columns.trainerIndex,
+    columns.startIndex,
+    columns.trainingIndex,
+    columns.participantIndex,
   );
+
+const saveCountryData = async (data) => {
+  const accessToken = await getGoogleAccessToken();
+  const { spreadsheetId, sheetName } = getSheetConfig();
+  const rows = await getSheetRows(accessToken, spreadsheetId, sheetName);
+  const headers = rows[0] || ["Land", "Trainer", "Startjahr", "Trainings", "Teilnehmer"];
+  const columns = getSheetColumns(headers);
+  const maxIndex = getMaxColumnIndex(columns);
   const rowIndex = rows.findIndex(
-    (row, index) => index > 0 && `${row[countryIndex] || ""}`.trim() === data.country,
+    (row, index) => index > 0 && `${row[columns.countryIndex] || ""}`.trim() === data.country,
   );
   const nextRow = rowIndex === -1 ? Array(maxIndex + 1).fill("") : [...rows[rowIndex]];
 
@@ -176,11 +191,11 @@ const saveCountryData = async (data) => {
     nextRow.push("");
   }
 
-  nextRow[countryIndex] = data.country;
-  nextRow[trainerIndex] = data.trainerCount || "";
-  nextRow[startIndex] = data.startYear || "";
-  nextRow[trainingIndex] = data.trainingCount || "";
-  nextRow[participantIndex] = data.participantCount || "";
+  nextRow[columns.countryIndex] = data.country;
+  nextRow[columns.trainerIndex] = data.trainerCount || "";
+  nextRow[columns.startIndex] = data.startYear || "";
+  nextRow[columns.trainingIndex] = data.trainingCount || "";
+  nextRow[columns.participantIndex] = data.participantCount || "";
 
   if (rowIndex === -1) {
     const appendRange = encodeURIComponent(`${quoteSheetName(sheetName)}!A:Z`);
@@ -209,6 +224,46 @@ const saveCountryData = async (data) => {
       }),
     },
   );
+};
+
+const syncCountriesData = async (countries) => {
+  const accessToken = await getGoogleAccessToken();
+  const { spreadsheetId, sheetName } = getSheetConfig();
+  const rows = await getSheetRows(accessToken, spreadsheetId, sheetName);
+  const headers = rows[0] || ["Land", "Trainer", "Startjahr", "Trainings", "Teilnehmer"];
+  const columns = getSheetColumns(headers);
+  const maxIndex = getMaxColumnIndex(columns);
+  const existingCountries = new Set(
+    rows
+      .slice(1)
+      .map((row) => `${row[columns.countryIndex] || ""}`.trim())
+      .filter(Boolean),
+  );
+  const missingCountries = Array.from(
+    new Set((countries || []).map((country) => `${country || ""}`.trim()).filter(Boolean)),
+  ).filter((country) => !existingCountries.has(country));
+
+  if (!missingCountries.length) {
+    return 0;
+  }
+
+  const values = missingCountries.map((country) => {
+    const row = Array(maxIndex + 1).fill("");
+    row[columns.countryIndex] = country;
+    return row;
+  });
+  const appendRange = encodeURIComponent(`${quoteSheetName(sheetName)}!A:Z`);
+
+  await sheetsRequest(
+    accessToken,
+    `${spreadsheetId}/values/${appendRange}:append?valueInputOption=USER_ENTERED`,
+    {
+      method: "POST",
+      body: JSON.stringify({ values }),
+    },
+  );
+
+  return missingCountries.length;
 };
 
 exports.handler = async (event) => {
@@ -258,6 +313,29 @@ exports.handler = async (event) => {
         "Set-Cookie": `${SESSION_COOKIE}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=28800`,
       },
     );
+  }
+
+  if (body.action === "logout") {
+    return jsonResponse(
+      200,
+      { authenticated: false },
+      {
+        "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
+      },
+    );
+  }
+
+  if (body.action === "syncCountries") {
+    if (!verifySession(event.headers.cookie || "")) {
+      return jsonResponse(401, { error: "Bitte zuerst einloggen." });
+    }
+
+    try {
+      const addedCount = await syncCountriesData(body.countries);
+      return jsonResponse(200, { addedCount });
+    } catch (error) {
+      return jsonResponse(500, { error: error.message });
+    }
   }
 
   if (body.action === "save") {

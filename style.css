@@ -142,6 +142,28 @@ body {
   gap: 1rem;
 }
 
+.admin-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-logout-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0 0.75rem;
+  border: 1px solid #60b0bf;
+  background-color: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.admin-logout-button:hover {
+  background-color: rgba(96, 176, 191, 0.16);
+}
+
 .admin-panel label {
   display: grid;
   gap: 0.45rem;

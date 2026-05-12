@@ -20,6 +20,7 @@ const adminModal = document.querySelector(".admin-modal");
 const adminCloseButton = document.querySelector(".admin-close-button");
 const adminLoginForm = document.querySelector(".admin-login-form");
 const adminDataForm = document.querySelector(".admin-data-form");
+const adminLogoutButton = document.querySelector(".admin-logout-button");
 const adminPasswordInput = document.querySelector(".admin-password-input");
 const adminCountrySelect = document.querySelector(".admin-country-select");
 const adminTrainerInput = document.querySelector(".admin-trainer-input");
@@ -63,6 +64,7 @@ const participantcount = document.querySelector(".participant-count");
 let countryProfiles = {};
 let normalizedCountryProfiles = {};
 let showActiveCountries = false;
+let adminCountriesSynced = false;
 const selectedActiveCountryKeys = new Set();
 const defaultCountryFill = "#000000";
 const hoverCountryFill = "#ffffff";
@@ -86,6 +88,16 @@ const setAdminMessage = (message) => {
   }
 };
 
+const getAdminCountryNames = () =>
+  Array.from(
+    new Set([
+      ...Array.from(countries).map(getGermanCountryName),
+      ...Object.keys(countryProfiles),
+    ]),
+  )
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "de"));
+
 const callAdminApi = async (payload) => {
   const response = await fetch("/.netlify/functions/admin", {
     method: "POST",
@@ -107,9 +119,7 @@ const fillAdminCountrySelect = () => {
   if (!adminCountrySelect) return;
 
   const currentValue = adminCountrySelect.value;
-  const countryNames = Object.keys(countryProfiles).sort((a, b) =>
-    a.localeCompare(b, "de"),
-  );
+  const countryNames = getAdminCountryNames();
 
   adminCountrySelect.innerHTML = "";
 
@@ -120,11 +130,30 @@ const fillAdminCountrySelect = () => {
     adminCountrySelect.appendChild(option);
   });
 
-  if (currentValue && countryProfiles[currentValue]) {
+  if (currentValue && countryNames.includes(currentValue)) {
     adminCountrySelect.value = currentValue;
   }
 
   updateAdminFormValues();
+};
+
+const syncAdminCountries = async () => {
+  if (adminCountriesSynced) return;
+
+  const countryNames = getAdminCountryNames();
+  if (!countryNames.length) return;
+
+  const result = await callAdminApi({
+    action: "syncCountries",
+    countries: countryNames,
+  });
+
+  adminCountriesSynced = true;
+  setAdminMessage(
+    result.addedCount > 0
+      ? `${result.addedCount} fehlende Länder wurden ins Google Sheet ergänzt.`
+      : "Alle Länder sind bereits im Google Sheet.",
+  );
 };
 
 const updateAdminFormValues = () => {
@@ -147,6 +176,11 @@ const showAdminDataForm = () => {
   fillAdminCountrySelect();
 };
 
+const showAdminLoginForm = () => {
+  adminLoginForm?.classList.remove("hide");
+  adminDataForm?.classList.add("hide");
+};
+
 const openAdminModal = async () => {
   adminModal?.classList.remove("hide");
   setAdminMessage("");
@@ -155,14 +189,13 @@ const openAdminModal = async () => {
     const status = await callAdminApi({ action: "status" });
     if (status.authenticated) {
       showAdminDataForm();
+      await syncAdminCountries();
     } else {
-      adminLoginForm?.classList.remove("hide");
-      adminDataForm?.classList.add("hide");
+      showAdminLoginForm();
       adminPasswordInput?.focus();
     }
   } catch (error) {
-    adminLoginForm?.classList.remove("hide");
-    adminDataForm?.classList.add("hide");
+    showAdminLoginForm();
     setAdminMessage(error.message);
   }
 };
@@ -466,6 +499,22 @@ adminModal?.addEventListener("click", (event) => {
   }
 });
 adminCountrySelect?.addEventListener("change", updateAdminFormValues);
+adminLogoutButton?.addEventListener("click", async () => {
+  adminLogoutButton.disabled = true;
+  setAdminMessage("Du wirst ausgeloggt...");
+
+  try {
+    await callAdminApi({ action: "logout" });
+    adminCountriesSynced = false;
+    showAdminLoginForm();
+    setAdminMessage("Ausgeloggt.");
+    adminPasswordInput?.focus();
+  } catch (error) {
+    setAdminMessage(error.message);
+  } finally {
+    adminLogoutButton.disabled = false;
+  }
+});
 
 adminLoginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -480,7 +529,8 @@ adminLoginForm?.addEventListener("submit", async (event) => {
     });
     adminPasswordInput.value = "";
     showAdminDataForm();
-    setAdminMessage("Eingeloggt.");
+    setAdminMessage("Eingeloggt. Länder werden geprüft...");
+    await syncAdminCountries();
   } catch (error) {
     setAdminMessage(error.message);
   } finally {
