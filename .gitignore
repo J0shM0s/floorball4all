@@ -1,0 +1,29 @@
+# Ignore common OS and editor files
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+
+# Visual Studio Code
+.vscode/
+
+# Windows temporary files
+*.tmp
+*.swp
+
+# Build output
+dist/
+build/
+
+# Backup files
+*~
+*.bak

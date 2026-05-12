@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ländervergleich - Floorball4all</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="hero-banner">
+        <div class="banner-content">
+            <h1>Ländervergleich</h1>
+            <p>Vergleiche die Floorball-Daten verschiedener Länder</p>
+            <a href="index.html" class="banner-button"><i class="fas fa-arrow-left"></i> Zurück</a>
+        </div>
+    </header>
+
+    <main class="compare-container">
+        <section class="selection-section">
+            <div class="country-selector">
+                <div class="selector-group">
+                    <label for="country1-select">Land 1</label>
+                    <select id="country1-select" class="country-select">
+                        <option value="">Bitte ein Land wählen...</option>
+                    </select>
+                </div>
+
+                <div class="selector-group">
+                    <label for="country2-select">Land 2</label>
+                    <select id="country2-select" class="country-select">
+                        <option value="">Bitte ein Land wählen...</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+  
+        <section class="charts-section">
+            <div class="charts-grid">
+                <div class="chart-wrapper">
+                    <h3>Datenervergleich</h3>
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="table-section">
+            <h2>Detaillierter Vergleich</h2>
+            <div class="table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Kategorie</th>
+                            <th id="table-country1">Land 1</th>
+                            <th id="table-country2">Land 2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Trainer</strong></td>
+                            <td id="trainer-c1">-</td>
+                            <td id="trainer-c2">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Trainings</strong></td>
+                            <td id="training-c1">-</td>
+                            <td id="training-c2">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Teilnehmer</strong></td>
+                            <td id="participant-c1">-</td>
+                            <td id="participant-c2">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <p class="loading-info"><i class="fas fa-spinner fa-spin"></i> Daten werden geladen...</p>
+        </section>
+    </main>
+
+    <script src="compare.js"></script>
+</body>
+</html>
