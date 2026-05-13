@@ -1,24 +1,13 @@
 # Cloudflare Deployment
 
-Diese Version ist fuer Cloudflare vorbereitet. Sie funktioniert sowohl mit
-Cloudflare Pages Functions als auch mit einem Worker Deploy ueber Wrangler.
+Diese Version ist fuer Cloudflare Pages vorbereitet.
 
-Der aktuelle `wrangler.toml` ist fuer `npx wrangler deploy` vorbereitet:
-statische Dateien werden als Worker Assets ausgeliefert, `/api/admin` laeuft
-ueber `src/index.js` und `functions/api/admin.js`.
-
-## Cloudflare Pages / Worker Deploy
+## Cloudflare Pages
 
 1. Repository zu GitHub pushen.
 2. In Cloudflare `Workers & Pages` oeffnen.
-3. GitHub Repository verbinden.
-4. Wenn Cloudflare einen Deploy Command verlangt, nutze:
-
-```txt
-npx wrangler deploy
-```
-
-   Wenn du explizit Cloudflare Pages ohne Worker Deploy nutzt:
+3. `Create application` -> `Pages` -> GitHub Repository verbinden.
+4. Build-Einstellungen:
    - Framework preset: `None`
    - Build command: leer lassen
    - Build output directory: `.`
@@ -59,8 +48,8 @@ $hash = [System.Security.Cryptography.SHA256]::HashData($bytes)
 
 ## Admin API
 
-Das Frontend ruft jetzt `/api/admin` auf. Diese Route wird von `src/index.js`
-an `functions/api/admin.js` weitergegeben.
+Das Frontend ruft jetzt `/api/admin` auf. Diese Route wird von
+`functions/api/admin.js` als Cloudflare Pages Function bedient.
 
 `_routes.json` sorgt dafuer, dass nur `/api/*` als Function ausgefuehrt wird.
 Normale HTML-, CSS- und JavaScript-Dateien bleiben statische Pages-Dateien.

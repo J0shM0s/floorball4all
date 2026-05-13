@@ -1,9 +1,0 @@
-.git
-.gitignore
-.assetsignore
-CLOUDFLARE_DEPLOY.md
-netlify
-functions
-src
-wrangler.toml
-_routes.json
