@@ -1,4 +1,4 @@
-name = "floorball4all-data-overview"
+name = "floorball4all"
 compatibility_date = "2026-05-13"
 main = "src/index.js"
 
