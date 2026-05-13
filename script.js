@@ -99,7 +99,7 @@ const getAdminCountryNames = () =>
     .sort((a, b) => a.localeCompare(b, "de"));
 
 const callAdminApi = async (payload) => {
-  const response = await fetch("/api/admin", {
+  const response = await fetch("/.netlify/functions/admin", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
