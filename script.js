@@ -29,6 +29,9 @@ const adminStartInput = document.querySelector(".admin-start-input");
 const adminTrainingInput = document.querySelector(".admin-training-input");
 const adminParticipantInput = document.querySelector(".admin-participant-input");
 const adminMessage = document.querySelector(".admin-message");
+const cookieConsent = document.querySelector(".cookie-consent");
+const cookieAcceptButton = document.querySelector(".cookie-consent-accept");
+const cookieDeclineButton = document.querySelector(".cookie-consent-decline");
 
 let zoomLevel = 1;
 const zoomStep = 0.1;
@@ -74,6 +77,33 @@ const defaultCountryStroke = "#000000";
 const activeCountryStroke = "#000000";
 const defaultCountryStrokeWidth = "0.4";
 const activeCountryStrokeWidth = "1.4";
+const privacyConsentKey = "floorball4allPrivacyConsent";
+
+const closeCookieConsent = (choice) => {
+  try {
+    localStorage.setItem(privacyConsentKey, choice);
+  } catch (error) {
+    console.warn("Datenschutz-Auswahl konnte nicht gespeichert werden.", error);
+  }
+
+  cookieConsent?.classList.remove("show");
+};
+
+try {
+  if (!localStorage.getItem(privacyConsentKey)) {
+    cookieConsent?.classList.add("show");
+  }
+} catch (error) {
+  cookieConsent?.classList.add("show");
+}
+
+cookieAcceptButton?.addEventListener("click", () => {
+  closeCookieConsent("accepted");
+});
+
+cookieDeclineButton?.addEventListener("click", () => {
+  closeCookieConsent("declined");
+});
 
 const defaultProfile = {
   flag: "",

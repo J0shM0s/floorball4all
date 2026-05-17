@@ -1,5 +1,5 @@
 body {
-  font-family: "Roboto", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #fff;
   background-color: #061e2d;
 }
@@ -571,7 +571,7 @@ button:disabled {
   border-radius: 6px;
   cursor: pointer;
   transition: all 200ms ease;
-  font-family: "Roboto", sans-serif;
+  font-family: inherit;
 }
 
 .country-select:hover {
@@ -707,6 +707,101 @@ button:disabled {
   color: #e5a92e;
 }
 
+.legal-footer {
+  border-top: 1px solid rgba(96, 176, 191, 0.5);
+  background-color: #061e2d;
+  color: #fff;
+}
+
+.legal-footer-inner {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0;
+  display: grid;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.legal-footer p:first-child {
+  color: #e5a92e;
+  font-weight: 700;
+}
+
+.legal-footer a {
+  color: #60b0bf;
+  text-decoration-color: rgba(96, 176, 191, 0.6);
+}
+
+.legal-footer a:hover {
+  color: #e5a92e;
+}
+
+.cookie-consent {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(6, 30, 45, 0.5);
+}
+
+.cookie-consent.show {
+  display: flex;
+}
+
+.cookie-consent-panel {
+  width: min(100%, 52rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.25rem;
+  border: 1px solid #60b0bf;
+  background-color: #061e2d;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+}
+
+.cookie-consent-panel h2 {
+  margin-bottom: 0.45rem;
+  color: #e5a92e;
+  font-size: 1.2rem;
+}
+
+.cookie-consent-panel p {
+  line-height: 1.55;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cookie-consent-actions button {
+  min-height: 2.7rem;
+  padding: 0 1rem;
+  border: 1px solid #e5a92e;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cookie-consent-decline {
+  background-color: transparent;
+}
+
+.cookie-consent-accept {
+  background-color: #008099;
+}
+
+.cookie-consent-actions button:hover {
+  background-color: #60b0bf;
+}
+
 
 .info-section {
   text-align: center;
@@ -777,5 +872,17 @@ button:disabled {
   .banner-button {
     padding: 0.75rem 1.25rem;
     font-size: 0.95rem;
+  }
+
+  .cookie-consent-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .cookie-consent-actions {
+    justify-content: stretch;
+  }
+
+  .cookie-consent-actions button {
+    flex: 1;
   }
 }
