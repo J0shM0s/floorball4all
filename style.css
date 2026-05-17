@@ -181,6 +181,12 @@ body {
   font: inherit;
 }
 
+.admin-country-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, 0.8fr);
+  gap: 0.65rem;
+}
+
 .admin-panel input:focus,
 .admin-panel select:focus {
   outline: 2px solid #e5a92e;
@@ -429,6 +435,10 @@ button:disabled {
     padding: 0.9rem 1.2rem;
     font-size: 0.95rem;
     margin: 0.5rem 0.35rem 0 0.35rem;
+  }
+
+  .admin-country-picker {
+    grid-template-columns: 1fr;
   }
 
   .world-map {

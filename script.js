@@ -22,6 +22,7 @@ const adminLoginForm = document.querySelector(".admin-login-form");
 const adminDataForm = document.querySelector(".admin-data-form");
 const adminLogoutButton = document.querySelector(".admin-logout-button");
 const adminPasswordInput = document.querySelector(".admin-password-input");
+const adminCountryInput = document.querySelector(".admin-country-input");
 const adminCountrySelect = document.querySelector(".admin-country-select");
 const adminTrainerInput = document.querySelector(".admin-trainer-input");
 const adminStartInput = document.querySelector(".admin-start-input");
@@ -115,13 +116,21 @@ const callAdminApi = async (payload) => {
   return result;
 };
 
+const getSelectedAdminCountry = () =>
+  (adminCountryInput?.value || adminCountrySelect?.value || "").trim();
+
 const fillAdminCountrySelect = () => {
   if (!adminCountrySelect) return;
 
-  const currentValue = adminCountrySelect.value;
+  const currentValue = getSelectedAdminCountry();
   const countryNames = getAdminCountryNames();
 
   adminCountrySelect.innerHTML = "";
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = "Land aus Dropdown waehlen";
+  adminCountrySelect.appendChild(placeholderOption);
 
   countryNames.forEach((countryName) => {
     const option = document.createElement("option");
@@ -132,6 +141,10 @@ const fillAdminCountrySelect = () => {
 
   if (currentValue && countryNames.includes(currentValue)) {
     adminCountrySelect.value = currentValue;
+  }
+
+  if (adminCountryInput && !adminCountryInput.value && adminCountrySelect.value) {
+    adminCountryInput.value = adminCountrySelect.value;
   }
 
   updateAdminFormValues();
@@ -157,9 +170,13 @@ const syncAdminCountries = async () => {
 };
 
 const updateAdminFormValues = () => {
-  if (!adminCountrySelect) return;
+  if (!adminCountryInput && !adminCountrySelect) return;
 
-  const profile = countryProfiles[adminCountrySelect.value] || defaultProfile;
+  const selectedCountry = getSelectedAdminCountry();
+  const profile =
+    countryProfiles[selectedCountry] ||
+    normalizedCountryProfiles[normalizeCountryName(selectedCountry)] ||
+    defaultProfile;
   adminTrainerInput.value =
     profile.trainerCount === "Keine Angabe" ? "" : profile.trainerCount;
   adminStartInput.value =
@@ -498,7 +515,28 @@ adminModal?.addEventListener("click", (event) => {
     closeAdminModal();
   }
 });
-adminCountrySelect?.addEventListener("change", updateAdminFormValues);
+adminCountryInput?.addEventListener("input", () => {
+  const typedCountry = adminCountryInput.value.trim();
+
+  if (adminCountrySelect) {
+    const matchingOption = Array.from(adminCountrySelect.options).find(
+      (option) =>
+        option.value &&
+        normalizeCountryName(option.value) === normalizeCountryName(typedCountry),
+    );
+    adminCountrySelect.value = matchingOption?.value || "";
+  }
+
+  updateAdminFormValues();
+});
+
+adminCountrySelect?.addEventListener("change", () => {
+  if (adminCountryInput && adminCountrySelect.value) {
+    adminCountryInput.value = adminCountrySelect.value;
+  }
+
+  updateAdminFormValues();
+});
 adminLogoutButton?.addEventListener("click", async () => {
   adminLogoutButton.disabled = true;
   setAdminMessage("Du wirst ausgeloggt...");
@@ -540,11 +578,11 @@ adminLoginForm?.addEventListener("submit", async (event) => {
 
 adminDataForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const submitButton = adminDataForm.querySelector("button");
+  const submitButton = adminDataForm.querySelector(".admin-submit-button");
   submitButton.disabled = true;
   setAdminMessage("Daten werden gespeichert...");
 
-  const country = adminCountrySelect.value;
+  const country = getSelectedAdminCountry();
   const profile = {
     trainerCount: adminTrainerInput.value.trim(),
     startYear: adminStartInput.value.trim(),
@@ -567,6 +605,7 @@ adminDataForm?.addEventListener("submit", async (event) => {
     };
     normalizedCountryProfiles[normalizeCountryName(country)] =
       countryProfiles[country];
+    fillAdminCountrySelect();
     updateActiveCountryHighlights();
     setAdminMessage("Gespeichert. Google Sheet wurde aktualisiert.");
   } catch (error) {

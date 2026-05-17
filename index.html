@@ -12,6 +12,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -53,7 +54,16 @@
           </div>
           <label>
             Land
-            <select class="admin-country-select" required></select>
+            <div class="admin-country-picker">
+              <input
+                class="admin-country-input"
+                type="text"
+                placeholder="Land eingeben"
+                autocomplete="off"
+                required
+              />
+              <select class="admin-country-select" aria-label="Land aus Dropdown auswählen"></select>
+            </div>
           </label>
           <label>
             Ausgebildete Trainer
