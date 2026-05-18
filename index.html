@@ -13,6 +13,10 @@
   </head>
   <body>
     <header class="hero-banner">
+      <button class="language-switch-button" type="button" aria-label="Zu Englisch wechseln">
+        <i class="fas fa-globe"></i>
+        <span>English</span>
+      </button>
       <button class="admin-login-button" type="button">
         <i class="fas fa-lock"></i>
         Admin Login
@@ -2218,16 +2222,25 @@
         <input
           class="country-search-input"
           type="search"
+          list="country-search-options"
           placeholder="Land suchen"
           aria-label="Land nach Namen suchen"
         />
+        <datalist id="country-search-options"></datalist>
         <button class="country-search-button" type="submit" aria-label="Suchen">
           <i class="fas fa-search"></i>
         </button>
       </form>
+      <p class="country-search-message" aria-live="polite"></p>
+      <select class="mobile-country-select" aria-label="Land aus Liste auswählen">
+        <option value="">Land aus Liste auswählen</option>
+      </select>
       <div class="zoom-controls">
         <button class="zoom-in" type="button">+</button>
         <button class="zoom-out" type="button">-</button>
+        <button class="map-reset-button" type="button" aria-label="Karte zurücksetzen">
+          <i class="fas fa-rotate-left"></i>
+        </button>
         <p class="zoom-value">100%</p>
       </div>
     </div>

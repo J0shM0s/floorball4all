@@ -13,6 +13,9 @@ const activeCountriesCheckbox = document.querySelector(
 );
 const countrySearchForm = document.querySelector(".country-search");
 const countrySearchInput = document.querySelector(".country-search-input");
+const countrySearchOptions = document.querySelector("#country-search-options");
+const countrySearchMessage = document.querySelector(".country-search-message");
+const mobileCountrySelect = document.querySelector(".mobile-country-select");
 const countryNameOutlut = document.querySelector(".country-name");
 const countryFlagOutput = document.querySelector(".country-flag");
 const adminLoginButton = document.querySelector(".admin-login-button");
@@ -61,6 +64,7 @@ const trainercount = document.querySelector(".trainer-count");
 const startyear = document.querySelector(".start-year");
 const trainingcount = document.querySelector(".training-count");
 const participantcount = document.querySelector(".participant-count");
+const mapResetButton = document.querySelector(".map-reset-button");
 
 let countryProfiles = {};
 let normalizedCountryProfiles = {};
@@ -76,6 +80,49 @@ const defaultCountryStrokeWidth = "0.4";
 const activeCountryStrokeWidth = "1.4";
 const getUiText = (key) => window.floorballI18n?.t(key) || key;
 const getUiLanguage = () => window.floorballI18n?.getLanguage() || "de";
+
+const parseCsv = (csvText) => {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let insideQuotes = false;
+
+  for (let index = 0; index < csvText.length; index++) {
+    const character = csvText[index];
+    const nextCharacter = csvText[index + 1];
+
+    if (character === '"') {
+      if (insideQuotes && nextCharacter === '"') {
+        value += '"';
+        index++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+      continue;
+    }
+
+    if (character === "," && !insideQuotes) {
+      row.push(value);
+      value = "";
+      continue;
+    }
+
+    if ((character === "\n" || character === "\r") && !insideQuotes) {
+      if (character === "\r" && nextCharacter === "\n") index++;
+      row.push(value);
+      if (row.some((cell) => cell.trim())) rows.push(row);
+      row = [];
+      value = "";
+      continue;
+    }
+
+    value += character;
+  }
+
+  row.push(value);
+  if (row.some((cell) => cell.trim())) rows.push(row);
+  return rows;
+};
 
 const defaultProfile = {
   flag: "",
@@ -333,6 +380,53 @@ const getCountryAliases = (country) => {
   ].filter(Boolean);
 };
 
+const getSortedLocalizedCountries = () =>
+  Array.from(countries)
+    .map((country) => ({
+      country,
+      name: getLocalizedCountryName(country),
+      key: getCountryKey(country),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, getUiLanguage()));
+
+const fillCountryPickers = () => {
+  const localizedCountries = getSortedLocalizedCountries();
+
+  if (countrySearchOptions) {
+    countrySearchOptions.innerHTML = "";
+    localizedCountries.forEach(({ name }) => {
+      const option = document.createElement("option");
+      option.value = name;
+      countrySearchOptions.appendChild(option);
+    });
+  }
+
+  if (mobileCountrySelect) {
+    const currentValue = mobileCountrySelect.value;
+    mobileCountrySelect.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = getUiText("countryList");
+    mobileCountrySelect.appendChild(placeholder);
+
+    localizedCountries.forEach(({ name, key }) => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = name;
+      mobileCountrySelect.appendChild(option);
+    });
+
+    mobileCountrySelect.value = currentValue;
+  }
+};
+
+const updateCountryAccessibility = () => {
+  countries.forEach((country) => {
+    country.setAttribute("aria-label", getLocalizedCountryName(country));
+  });
+};
+
 const getCountryProfile = (country) => {
   const aliases = getCountryAliases(country);
   const aliasProfile = aliases
@@ -385,17 +479,15 @@ const updateActiveCountryHighlights = () => {
   countries.forEach(updateCountryFill);
 };
 
-// Google Sheet CSV laden
 const googleSheetUrl =
   "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZAaYyJck9_vimowPV1-3MaQqX2Dbw/export?format=csv";
 
 fetch(googleSheetUrl)
   .then((response) => response.text())
   .then((csv) => {
-    const lines = csv.trim().split("\n");
-    const headers = lines[0].split(",");
+    const rows = parseCsv(csv);
+    const headers = rows[0] || [];
 
-    // Spalten-Indizes finden
     const countryIndex = headers.findIndex((h) =>
       h.toLowerCase().includes("land"),
     );
@@ -412,9 +504,8 @@ fetch(googleSheetUrl)
       h.toLowerCase().includes("teilnehmer"),
     );
 
-    // Daten in countryProfiles laden
-    for (let i = 1; i < lines.length; i++) {
-      const row = lines[i].split(",");
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
       if (row[countryIndex]) {
         const countryName = row[countryIndex].trim();
         const profile = {
@@ -429,11 +520,13 @@ fetch(googleSheetUrl)
     }
     console.log("Daten von Google Sheet geladen:", countryProfiles);
     fillAdminCountrySelect();
+    fillCountryPickers();
     updateActiveCountryHighlights();
   })
-  .catch((error) =>
-    console.error("Fehler beim Laden der Google Sheet:", error),
-  );
+  .catch((error) => {
+    console.error("Fehler beim Laden der Google Sheet:", error);
+    showCountrySearchMessage(getUiText("loadError"));
+  });
 
 closeBtn?.addEventListener("click", () => {
   sidePanel.classList.remove("side-panel-open");
@@ -517,20 +610,60 @@ const findCountryByName = (searchTerm) => {
   );
 };
 
+const clearCountrySearchMessage = () => {
+  if (!countrySearchMessage) return;
+  countrySearchMessage.textContent = "";
+};
+
+const showCountrySearchMessage = (message) => {
+  if (!countrySearchMessage) return;
+  countrySearchMessage.textContent = message;
+};
+
+const selectCountry = (country) => {
+  selectedActiveCountryKeys.add(getCountryKey(country));
+  updateActiveCountryHighlights();
+  clearCountrySearchMessage();
+  openCountry(country);
+};
+
+const resetMapView = () => {
+  zoomLevel = 1;
+  selectedActiveCountryKeys.clear();
+  showActiveCountries = false;
+  if (activeCountriesCheckbox) activeCountriesCheckbox.checked = false;
+  if (countrySearchInput) countrySearchInput.value = "";
+  if (mobileCountrySelect) mobileCountrySelect.value = "";
+  clearCountrySearchMessage();
+  sidePanel?.classList.remove("side-panel-open");
+  updateZoom();
+  updateActiveCountryHighlights();
+};
+
 countrySearchForm?.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const foundCountry = findCountryByName(countrySearchInput.value);
   if (!foundCountry) {
+    showCountrySearchMessage(getUiText("countryNotFound"));
     countrySearchInput.focus();
     countrySearchInput.select();
     return;
   }
 
-  selectedActiveCountryKeys.add(getCountryKey(foundCountry));
-  updateActiveCountryHighlights();
-  openCountry(foundCountry);
+  selectCountry(foundCountry);
 });
+
+countrySearchInput?.addEventListener("input", clearCountrySearchMessage);
+
+mobileCountrySelect?.addEventListener("change", () => {
+  const selectedCountry = Array.from(countries).find(
+    (country) => getCountryKey(country) === mobileCountrySelect.value,
+  );
+  if (selectedCountry) selectCountry(selectedCountry);
+});
+
+mapResetButton?.addEventListener("click", resetMapView);
 
 adminLoginButton?.addEventListener("click", openAdminModal);
 adminCloseButton?.addEventListener("click", closeAdminModal);
@@ -556,6 +689,9 @@ adminCountryInput?.addEventListener("input", () => {
 
 window.addEventListener("floorball-language-change", () => {
   fillAdminCountrySelect();
+  updateCountryAccessibility();
+  fillCountryPickers();
+  clearCountrySearchMessage();
   const openedCountryName = countryNameOutlut?.textContent;
   if (!sidePanel?.classList.contains("side-panel-open") || !openedCountryName) return;
 
@@ -657,6 +793,10 @@ adminDataForm?.addEventListener("submit", async (event) => {
 });
 
 countries.forEach((country) => {
+  country.setAttribute("tabindex", "0");
+  country.setAttribute("role", "button");
+  country.setAttribute("aria-label", getLocalizedCountryName(country));
+
   country.addEventListener("mouseenter", function () {
     if (!selectedActiveCountryKeys.has(getCountryKey(this))) {
       this.style.fill = hoverCountryFill;
@@ -668,8 +808,32 @@ countries.forEach((country) => {
   });
 
   country.addEventListener("click", function () {
-    selectedActiveCountryKeys.add(getCountryKey(this));
-    updateActiveCountryHighlights();
-    openCountry(this);
+    selectCountry(this);
+  });
+
+  country.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      selectCountry(this);
+    }
   });
 });
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+
+  if (adminModal && !adminModal.classList.contains("hide")) {
+    closeAdminModal();
+    adminLoginButton?.focus();
+    return;
+  }
+
+  if (sidePanel?.classList.contains("side-panel-open")) {
+    sidePanel.classList.remove("side-panel-open");
+    return;
+  }
+
+  document.querySelector(".cookie-consent.show")?.classList.remove("show");
+});
+
+fillCountryPickers();

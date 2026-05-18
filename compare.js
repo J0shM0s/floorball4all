@@ -1,4 +1,3 @@
-// Google Sheet CSV laden
 const googleSheetUrl = "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZAaYyJck9_vimowPV1-3MaQqX2Dbw/export?format=csv";
 
 let countryData = {};
@@ -6,13 +5,54 @@ let chartInstance = null;
 let radarChartInstance = null;
 const getUiText = (key) => window.floorballI18n?.t(key) || key;
 
-// DOM Elements
+const parseCsv = (csvText) => {
+    const rows = [];
+    let row = [];
+    let value = "";
+    let insideQuotes = false;
+
+    for (let index = 0; index < csvText.length; index++) {
+        const character = csvText[index];
+        const nextCharacter = csvText[index + 1];
+
+        if (character === '"') {
+            if (insideQuotes && nextCharacter === '"') {
+                value += '"';
+                index++;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+            continue;
+        }
+
+        if (character === "," && !insideQuotes) {
+            row.push(value);
+            value = "";
+            continue;
+        }
+
+        if ((character === "\n" || character === "\r") && !insideQuotes) {
+            if (character === "\r" && nextCharacter === "\n") index++;
+            row.push(value);
+            if (row.some((cell) => cell.trim())) rows.push(row);
+            row = [];
+            value = "";
+            continue;
+        }
+
+        value += character;
+    }
+
+    row.push(value);
+    if (row.some((cell) => cell.trim())) rows.push(row);
+    return rows;
+};
+
 const country1Select = document.getElementById("country1-select");
 const country2Select = document.getElementById("country2-select");
 const tableCountry1 = document.getElementById("table-country1");
 const tableCountry2 = document.getElementById("table-country2");
 
-// Normalisierung des Ländernamens
 const normalizeCountryName = (name) => {
     return `${name || ""}`
         .trim()
@@ -25,16 +65,14 @@ const normalizeCountryName = (name) => {
         .replace(/[\u0300-\u036f]/g, "");
 };
 
-// Daten vom Google Sheet parsen
 async function loadCountryData() {
     try {
         const response = await fetch(googleSheetUrl);
         const csvText = await response.text();
-        const lines = csvText.split("\n").filter(line => line.trim());
+        const rows = parseCsv(csvText);
         
-        // CSV in Daten umwandeln
-        lines.slice(1).forEach((line) => {
-            const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+        rows.slice(1).forEach((row) => {
+            const values = row.map(v => v.trim());
             
             if (values.length >= 5) {
                 const country = values[0];
@@ -56,7 +94,6 @@ async function loadCountryData() {
             }
         });
         
-        // Selects mit Ländern füllen
         populateCountrySelects();
         document.querySelector(".loading-info").style.display = "none";
     } catch (error) {
@@ -65,7 +102,6 @@ async function loadCountryData() {
     }
 }
 
-// Select Dropdowns füllen
 function populateCountrySelects() {
     const countryNames = Object.keys(countryData).sort();
     
@@ -82,7 +118,6 @@ function populateCountrySelects() {
     });
 }
 
-// Wert extrahieren (Nummer oder "Keine Angabe")
 function extractValue(value) {
     if (!Number.isFinite(value) || value <= 0) return getUiText("noData");
     return value;
@@ -104,7 +139,6 @@ function formatComparisonText(type, value) {
     }
 }
 
-// Diagramme aktualisieren
 function updateCharts() {
     const c1 = country1Select.value;
     const c2 = country2Select.value;
@@ -118,26 +152,20 @@ function updateCharts() {
     updateBarChart(data1, data2, c1, c2);
 }
 
-// Tabelle aktualisieren
 function updateTableComparison(data1, data2, name1, name2) {
-    // Landnamen aktualisieren
     tableCountry1.textContent = name1;
     tableCountry2.textContent = name2;
     
-    // Trainer
     document.getElementById("trainer-c1").innerHTML = formatComparisonText("trainer", data1.trainerCount);
     document.getElementById("trainer-c2").innerHTML = formatComparisonText("trainer", data2.trainerCount);
     
-    // Trainings
     document.getElementById("training-c1").innerHTML = formatComparisonText("training", data1.trainingCount);
     document.getElementById("training-c2").innerHTML = formatComparisonText("training", data2.trainingCount);
     
-    // Teilnehmer
     document.getElementById("participant-c1").innerHTML = formatComparisonText("participant", data1.participantCount);
     document.getElementById("participant-c2").innerHTML = formatComparisonText("participant", data2.participantCount);
 }
 
-// Balkendiagramm erstellen/aktualisieren
 function updateBarChart(data1, data2, name1, name2) {
     const ctx = document.getElementById("comparisonChart").getContext("2d");
     
@@ -155,7 +183,7 @@ function updateBarChart(data1, data2, name1, name2) {
                     data: [
                         data1.trainerCount,
                         data1.trainingCount,
-                        data1.participantCount / 10 // Skaliert für bessere Anzeige
+                        data1.participantCount / 10
                     ],
                     backgroundColor: "rgba(96, 176, 191, 0.7)",
                     borderColor: "rgba(96, 176, 191, 1)",
@@ -210,7 +238,6 @@ function updateBarChart(data1, data2, name1, name2) {
     });
 }
 
-// Radar Diagramm erstellen/aktualisieren
 function updateRadarChart(data1, data2, name1, name2) {
     const ctx = document.getElementById("radarChart").getContext("2d");
     
@@ -228,7 +255,7 @@ function updateRadarChart(data1, data2, name1, name2) {
                     data: [
                         data1.trainerCount,
                         data1.trainingCount,
-                        data1.participantCount / 10 // Normalisiert
+                        data1.participantCount / 10
                     ],
                     borderColor: "rgba(96, 176, 191, 1)",
                     backgroundColor: "rgba(96, 176, 191, 0.2)",
@@ -283,7 +310,6 @@ function updateRadarChart(data1, data2, name1, name2) {
     });
 }
 
-// Event Listener
 country1Select.addEventListener("change", updateCharts);
 country2Select.addEventListener("change", updateCharts);
 
@@ -291,5 +317,4 @@ window.addEventListener("floorball-language-change", () => {
     updateCharts();
 });
 
-// Daten laden beim Start
 loadCountryData();

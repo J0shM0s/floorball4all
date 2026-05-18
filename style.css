@@ -89,9 +89,36 @@ body {
 }
 
 .admin-login-button {
-  position: absolute;
-  top: 1rem;
+  position: fixed;
+  bottom: 1rem;
   right: 1rem;
+  z-index: 9000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.35rem;
+  padding: 0 0.75rem;
+  border: 1px solid #e5a92e;
+  background-color: rgba(6, 30, 45, 0.88);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  opacity: 0.72;
+  transition: 200ms ease;
+}
+
+.admin-login-button:hover,
+.admin-login-button:focus-visible {
+  background-color: rgba(229, 169, 46, 0.18);
+  opacity: 1;
+}
+
+.language-switch-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9000;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -105,7 +132,7 @@ body {
   transition: 200ms ease;
 }
 
-.admin-login-button:hover {
+.language-switch-button:hover {
   background-color: rgba(229, 169, 46, 0.18);
 }
 
@@ -376,6 +403,7 @@ path:hover {
   top: 1em;
   right: 1em;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 0.75em;
   z-index: 2;
@@ -419,8 +447,41 @@ path:hover {
   cursor: pointer;
 }
 
-.zoom-controls button:hover {
+.zoom-controls button:hover,
+.zoom-controls button:focus-visible {
   background-color: #60b0bf;
+}
+
+.map-reset-button {
+  font-size: 1.2em !important;
+}
+
+.country-search-message {
+  flex-basis: 100%;
+  min-height: 1.4rem;
+  color: #e5a92e;
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+.mobile-country-select {
+  display: none;
+  min-height: 3em;
+  max-width: min(22em, 85vw);
+  padding: 0 0.85em;
+  border: 1px #e5a92e solid;
+  background-color: #061e2d;
+  color: #fff;
+  font: inherit;
+}
+
+path:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #e5a92e;
+  outline-offset: 3px;
 }
 
 button:disabled {
@@ -433,11 +494,7 @@ button:disabled {
 @media (max-width: 768px) {
   .hero-banner {
     padding: 3rem 1rem;
-  }
-
-  .admin-login-button {
-    position: static;
-    margin-bottom: 1.5rem;
+    flex-direction: column;
   }
 
   .banner-content {
@@ -466,10 +523,25 @@ button:disabled {
   .map-tools {
     top: auto;
     bottom: 1rem;
+    left: 1rem;
     right: 1rem;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+
+  .active-countries-toggle,
+  .country-search {
+    display: none;
+  }
+
+  .mobile-country-select {
+    display: block;
+    flex: 1 1 14rem;
+  }
+
+  .country-search-message {
+    text-align: left;
   }
 
   .zoom-controls {

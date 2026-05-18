@@ -40,6 +40,9 @@ const floorballTranslations = {
     searchCountry: "Land suchen",
     searchCountryLabel: "Land nach Namen suchen",
     search: "Suchen",
+    countryList: "Land aus Liste auswählen",
+    countryNotFound: "Kein passendes Land gefunden.",
+    resetMap: "Karte zurücksetzen",
     rights: "© 2026 Floorball4all Data Overview. Alle Rechte vorbehalten.",
     author: "Autor und Umsetzung: Joshua Moser.",
     contact: 'Kontakt: <a href="mailto:moser.joshuam.00@gmail.com">moser.joshuam.00@gmail.com</a>',
@@ -54,6 +57,7 @@ const floorballTranslations = {
     languageChoice: "Sprache wählen",
     german: "Deutsch",
     english: "Englisch",
+    switchLanguage: "Zu Englisch wechseln",
     decline: "Ablehnen",
     accept: "Akzeptieren",
     compareTitle: "Ländervergleich",
@@ -123,6 +127,9 @@ const floorballTranslations = {
     searchCountry: "Search country",
     searchCountryLabel: "Search country by name",
     search: "Search",
+    countryList: "Select country from list",
+    countryNotFound: "No matching country found.",
+    resetMap: "Reset map",
     rights: "© 2026 Floorball4all Data Overview. All rights reserved.",
     author: "Author and implementation: Joshua Moser.",
     contact: 'Contact: <a href="mailto:moser.joshuam.00@gmail.com">moser.joshuam.00@gmail.com</a>',
@@ -137,6 +144,7 @@ const floorballTranslations = {
     languageChoice: "Choose language",
     german: "German",
     english: "English",
+    switchLanguage: "Switch to German",
     decline: "Decline",
     accept: "Accept",
     compareTitle: "Country comparison",
@@ -202,6 +210,20 @@ const setAria = (selector, key) => {
   if (element) element.setAttribute("aria-label", t(key));
 };
 
+const setTitle = (selector, key) => {
+  const element = document.querySelector(selector);
+  if (element) element.setAttribute("title", t(key));
+};
+
+const updateLanguageSwitchButtons = (language) => {
+  document.querySelectorAll(".language-switch-button").forEach((button) => {
+    const nextLanguageLabel = language === "en" ? "Deutsch" : "English";
+    button.setAttribute("aria-label", t("switchLanguage"));
+    button.setAttribute("title", t("switchLanguage"));
+    button.innerHTML = `<i class="fas fa-globe"></i><span>${nextLanguageLabel}</span>`;
+  });
+};
+
 const setLabelText = (selector, key) => {
   const element = document.querySelector(selector);
   if (!element) return;
@@ -212,6 +234,7 @@ const setLabelText = (selector, key) => {
 const applyTranslations = () => {
   const language = getLanguage();
   document.documentElement.lang = language;
+  updateLanguageSwitchButtons(language);
 
   if (document.querySelector(".world-map-section")) {
     document.title = t("homeTitle");
@@ -246,6 +269,10 @@ const applyTranslations = () => {
     setPlaceholder(".country-search-input", "searchCountry");
     setAria(".country-search-input", "searchCountryLabel");
     setAria(".country-search-button", "search");
+    setAria(".mobile-country-select", "countryList");
+    setText(".mobile-country-select option[value='']", "countryList");
+    setAria(".map-reset-button", "resetMap");
+    setTitle(".map-reset-button", "resetMap");
     setText(".legal-footer-inner p:nth-child(1)", "rights");
     setText(".legal-footer-inner p:nth-child(2)", "author");
     setHtml(".legal-footer-inner p:nth-child(3)", "contact");
@@ -301,6 +328,12 @@ const setLanguage = (language) => {
 document.querySelectorAll(".language-choice-input").forEach((input) => {
   input.addEventListener("change", () => {
     if (input.checked) setLanguage(input.value);
+  });
+});
+
+document.querySelectorAll(".language-switch-button").forEach((button) => {
+  button.addEventListener("click", () => {
+    setLanguage(getLanguage() === "en" ? "de" : "en");
   });
 });
 
