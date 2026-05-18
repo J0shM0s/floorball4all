@@ -19,7 +19,29 @@
       </button>
       <div class="banner-content">
         <h1>Floorball4all Daten Übersicht</h1>
-        <p>Entdecke die Arbeit von Floorball4all</p>
+        <div class="banner-intro">
+          <h2>Herzlich Willkommen auf meiner interaktiven Weltkarte!</h2>
+          <p>
+            Schön, dass du da bist! Mit dieser Karte möchte ich dir einen Einblick in die weltweite Arbeit von
+            Floorball4all bzw. Unihockey für Strassenkinder geben. Ich habe dieses Tool entwickelt, damit du die
+            positiven Veränderungen, die durch diesen Sport entstehen, ganz einfach selbst entdecken kannst.
+          </p>
+          <p><strong>So funktioniert es:</strong></p>
+          <p>
+            <strong>Länder-Infos auf einen Blick:</strong> Klicke einfach auf ein beliebiges Land auf der Karte. Du
+            erhältst sofort spannende Statistiken, aktuelle Zahlen und tiefergehende Informationen zu den Projekten
+            und meiner Arbeit vor Ort.
+          </p>
+          <p>
+            <strong>Projekte miteinander vergleichen:</strong> Möchtest du wissen, wie sich die Arbeit in verschiedenen
+            Regionen unterscheidet? Wähle einfach zwei Länder aus, um deren Statistiken direkt miteinander zu
+            vergleichen und die Entwicklungen zu analysieren.
+          </p>
+          <p>
+            Tauche ein, klicke dich durch die Kontinente und erfahre, wie Unihockey das Leben von Kindern und
+            Jugendlichen nachhaltig verändert. Viel Spass beim Entdecken!
+          </p>
+        </div>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
           <a href="#world" class="banner-button">Zur Weltkarte</a>
           <a href="compare.html" class="banner-button"><i class="fas fa-chart-bar"></i> Länder vergleichen</a>
@@ -2247,12 +2269,22 @@
     <div class="cookie-consent" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
       <div class="cookie-consent-panel">
         <div>
-          <h2 id="cookie-consent-title">Datenschutz & Cookies</h2>
+          <h2 id="cookie-consent-title">Datenschutz, Cookies & Sprache</h2>
           <p>
             Wir verwenden nur technisch notwendige lokale Speicherung, um deine
-            Auswahl zu merken. Es werden keine Tracking-Cookies gesetzt und
-            Google Fonts werden nicht extern geladen.
+            Cookie- und Sprachauswahl zu merken. Es werden keine Tracking-Cookies gesetzt.
           </p>
+          <fieldset class="language-choice" aria-labelledby="language-choice-title">
+            <legend id="language-choice-title">Sprache wählen</legend>
+            <label>
+              <input class="language-choice-input" type="radio" name="site-language" value="de" />
+              <span>Deutsch</span>
+            </label>
+            <label>
+              <input class="language-choice-input" type="radio" name="site-language" value="en" />
+              <span>Englisch</span>
+            </label>
+          </fieldset>
         </div>
         <div class="cookie-consent-actions">
           <button class="cookie-consent-decline" type="button">Ablehnen</button>
@@ -2261,6 +2293,7 @@
       </div>
     </div>
 
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

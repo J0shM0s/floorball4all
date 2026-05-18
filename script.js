@@ -29,9 +29,6 @@ const adminStartInput = document.querySelector(".admin-start-input");
 const adminTrainingInput = document.querySelector(".admin-training-input");
 const adminParticipantInput = document.querySelector(".admin-participant-input");
 const adminMessage = document.querySelector(".admin-message");
-const cookieConsent = document.querySelector(".cookie-consent");
-const cookieAcceptButton = document.querySelector(".cookie-consent-accept");
-const cookieDeclineButton = document.querySelector(".cookie-consent-decline");
 
 let zoomLevel = 1;
 const zoomStep = 0.1;
@@ -77,33 +74,8 @@ const defaultCountryStroke = "#000000";
 const activeCountryStroke = "#000000";
 const defaultCountryStrokeWidth = "0.4";
 const activeCountryStrokeWidth = "1.4";
-const privacyConsentKey = "floorball4allPrivacyConsent";
-
-const closeCookieConsent = (choice) => {
-  try {
-    localStorage.setItem(privacyConsentKey, choice);
-  } catch (error) {
-    console.warn("Datenschutz-Auswahl konnte nicht gespeichert werden.", error);
-  }
-
-  cookieConsent?.classList.remove("show");
-};
-
-try {
-  if (!localStorage.getItem(privacyConsentKey)) {
-    cookieConsent?.classList.add("show");
-  }
-} catch (error) {
-  cookieConsent?.classList.add("show");
-}
-
-cookieAcceptButton?.addEventListener("click", () => {
-  closeCookieConsent("accepted");
-});
-
-cookieDeclineButton?.addEventListener("click", () => {
-  closeCookieConsent("declined");
-});
+const getUiText = (key) => window.floorballI18n?.t(key) || key;
+const getUiLanguage = () => window.floorballI18n?.getLanguage() || "de";
 
 const defaultProfile = {
   flag: "",
@@ -140,7 +112,7 @@ const callAdminApi = async (payload) => {
   const result = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(result.error || "Admin Anfrage fehlgeschlagen.");
+    throw new Error(result.error || getUiText("adminRequestFailed"));
   }
 
   return result;
@@ -159,7 +131,8 @@ const fillAdminCountrySelect = () => {
 
   const placeholderOption = document.createElement("option");
   placeholderOption.value = "";
-  placeholderOption.textContent = "Land aus Dropdown waehlen";
+  placeholderOption.textContent =
+    getUiLanguage() === "en" ? "Select country from dropdown" : "Land aus Dropdown waehlen";
   adminCountrySelect.appendChild(placeholderOption);
 
   countryNames.forEach((countryName) => {
@@ -194,8 +167,8 @@ const syncAdminCountries = async () => {
   adminCountriesSynced = true;
   setAdminMessage(
     result.addedCount > 0
-      ? `${result.addedCount} fehlende Länder wurden ins Google Sheet ergänzt.`
-      : "Alle Länder sind bereits im Google Sheet.",
+      ? `${result.addedCount} ${getUiText("syncAdded")}`
+      : getUiText("syncAll"),
   );
 };
 
@@ -253,7 +226,10 @@ const closeAdminModal = () => {
   setAdminMessage("");
 };
 
-const germanRegionNames = new Intl.DisplayNames(["de"], { type: "region" });
+const regionNamesByLanguage = {
+  de: new Intl.DisplayNames(["de"], { type: "region" }),
+  en: new Intl.DisplayNames(["en"], { type: "region" }),
+};
 
 const manualGermanCountryNames = {
   BQBO: "Bonaire",
@@ -317,6 +293,21 @@ const normalizeCountryName = (name) =>
 const getCountryKey = (country) =>
   normalizeCountryName(getCountryName(country));
 
+const getLocalizedCountryName = (country) => {
+  const countryCode = country.getAttribute("id");
+  const svgCountryName = getCountryName(country);
+
+  if (getUiLanguage() === "de" && manualGermanCountryNames[countryCode]) {
+    return manualGermanCountryNames[countryCode];
+  }
+
+  if (countryCode && /^[A-Z]{2}$/.test(countryCode)) {
+    return regionNamesByLanguage[getUiLanguage()]?.of(countryCode) || svgCountryName;
+  }
+
+  return svgCountryName;
+};
+
 const getGermanCountryName = (country) => {
   const countryCode = country.getAttribute("id");
   const svgCountryName = getCountryName(country);
@@ -326,7 +317,7 @@ const getGermanCountryName = (country) => {
   }
 
   if (countryCode && /^[A-Z]{2}$/.test(countryCode)) {
-    return germanRegionNames.of(countryCode) || svgCountryName;
+    return regionNamesByLanguage.de.of(countryCode) || svgCountryName;
   }
 
   return svgCountryName;
@@ -363,6 +354,9 @@ const hasProfileAnswer = (answer) => {
     normalizedAnswer !== "keine angabe"
   );
 };
+
+const formatProfileValue = (value) =>
+  `${value || ""}`.trim() === "Keine Angabe" ? getUiText("noData") : value;
 
 const isActiveCountry = (country) => {
   const profile = getCountryProfile(country);
@@ -451,16 +445,16 @@ activeCountriesCheckbox?.addEventListener("change", () => {
 });
 
 const openCountry = (country) => {
-  loading.innerText = "Wird geladen...";
+  loading.innerText = getUiText("loading");
   container.classList.add("hide");
   loading.classList.remove("hide");
 
   const clickedCountryName = getCountryName(country);
-  const germanCountryName = getGermanCountryName(country);
+  const localizedCountryName = getLocalizedCountryName(country);
 
   sidePanel.classList.add("side-panel-open");
   countryFlagOutput.src = "";
-  countryFlagOutput.alt = germanCountryName;
+  countryFlagOutput.alt = localizedCountryName;
 
   fetch(
     `https://restcountries.com/v3.1/name/${encodeURIComponent(clickedCountryName)}?fullText=true`,
@@ -473,31 +467,31 @@ const openCountry = (country) => {
       const countryData = data[0] || {};
       const profile = getCountryProfile(country);
 
-      countryNameOutlut.innerText = germanCountryName;
+      countryNameOutlut.innerText = localizedCountryName;
       if (countryData.flags?.png || countryData.flags?.svg) {
         countryFlagOutput.src = countryData.flags.png || countryData.flags.svg;
       } else {
         countryFlagOutput.src = "";
       }
 
-      trainercount.innerText = profile.trainerCount;
-      startyear.innerText = profile.startYear;
-      trainingcount.innerText = profile.trainingCount;
-      participantcount.innerText = profile.participantCount;
+      trainercount.innerText = formatProfileValue(profile.trainerCount);
+      startyear.innerText = formatProfileValue(profile.startYear);
+      trainingcount.innerText = formatProfileValue(profile.trainingCount);
+      participantcount.innerText = formatProfileValue(profile.participantCount);
 
       loading.classList.add("hide");
       container.classList.remove("hide");
     })
     .catch((error) => {
       console.error("Error fetching country data:", error);
-      countryNameOutlut.innerText = germanCountryName;
+      countryNameOutlut.innerText = localizedCountryName;
       countryFlagOutput.src = "";
-      countryFlagOutput.alt = germanCountryName;
+      countryFlagOutput.alt = localizedCountryName;
       const profile = getCountryProfile(country);
-      trainercount.innerText = profile.trainerCount;
-      startyear.innerText = profile.startYear;
-      trainingcount.innerText = profile.trainingCount;
-      participantcount.innerText = profile.participantCount;
+      trainercount.innerText = formatProfileValue(profile.trainerCount);
+      startyear.innerText = formatProfileValue(profile.startYear);
+      trainingcount.innerText = formatProfileValue(profile.trainingCount);
+      participantcount.innerText = formatProfileValue(profile.participantCount);
       loading.classList.add("hide");
       container.classList.remove("hide");
     });
@@ -560,6 +554,23 @@ adminCountryInput?.addEventListener("input", () => {
   updateAdminFormValues();
 });
 
+window.addEventListener("floorball-language-change", () => {
+  fillAdminCountrySelect();
+  const openedCountryName = countryNameOutlut?.textContent;
+  if (!sidePanel?.classList.contains("side-panel-open") || !openedCountryName) return;
+
+  const openedCountry = findCountryByName(openedCountryName);
+  if (openedCountry) {
+    const profile = getCountryProfile(openedCountry);
+    countryNameOutlut.innerText = getLocalizedCountryName(openedCountry);
+    countryFlagOutput.alt = getLocalizedCountryName(openedCountry);
+    trainercount.innerText = formatProfileValue(profile.trainerCount);
+    startyear.innerText = formatProfileValue(profile.startYear);
+    trainingcount.innerText = formatProfileValue(profile.trainingCount);
+    participantcount.innerText = formatProfileValue(profile.participantCount);
+  }
+});
+
 adminCountrySelect?.addEventListener("change", () => {
   if (adminCountryInput && adminCountrySelect.value) {
     adminCountryInput.value = adminCountrySelect.value;
@@ -569,13 +580,13 @@ adminCountrySelect?.addEventListener("change", () => {
 });
 adminLogoutButton?.addEventListener("click", async () => {
   adminLogoutButton.disabled = true;
-  setAdminMessage("Du wirst ausgeloggt...");
+  setAdminMessage(getUiText("logoutProgress"));
 
   try {
     await callAdminApi({ action: "logout" });
     adminCountriesSynced = false;
     showAdminLoginForm();
-    setAdminMessage("Ausgeloggt.");
+    setAdminMessage(getUiText("loggedOut"));
     adminPasswordInput?.focus();
   } catch (error) {
     setAdminMessage(error.message);
@@ -588,7 +599,7 @@ adminLoginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const submitButton = adminLoginForm.querySelector("button");
   submitButton.disabled = true;
-  setAdminMessage("Login wird geprüft...");
+  setAdminMessage(getUiText("loginProgress"));
 
   try {
     await callAdminApi({
@@ -597,7 +608,7 @@ adminLoginForm?.addEventListener("submit", async (event) => {
     });
     adminPasswordInput.value = "";
     showAdminDataForm();
-    setAdminMessage("Eingeloggt. Länder werden geprüft...");
+    setAdminMessage(getUiText("loggedIn"));
     await syncAdminCountries();
   } catch (error) {
     setAdminMessage(error.message);
@@ -610,7 +621,7 @@ adminDataForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const submitButton = adminDataForm.querySelector(".admin-submit-button");
   submitButton.disabled = true;
-  setAdminMessage("Daten werden gespeichert...");
+  setAdminMessage(getUiText("savingData"));
 
   const country = getSelectedAdminCountry();
   const profile = {
@@ -637,7 +648,7 @@ adminDataForm?.addEventListener("submit", async (event) => {
       countryProfiles[country];
     fillAdminCountrySelect();
     updateActiveCountryHighlights();
-    setAdminMessage("Gespeichert. Google Sheet wurde aktualisiert.");
+    setAdminMessage(getUiText("savedData"));
   } catch (error) {
     setAdminMessage(error.message);
   } finally {

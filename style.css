@@ -38,7 +38,7 @@ body {
 }
 
 .banner-content {
-  max-width: 44rem;
+  max-width: 58rem;
 }
 
 .banner-content h1 {
@@ -53,6 +53,23 @@ body {
   color: #fff;
   line-height: 1.75;
   font-size: 1.15rem;
+}
+
+.banner-intro {
+  display: grid;
+  gap: 1rem;
+  margin: 0 auto 0.5rem;
+  max-width: 52rem;
+}
+
+.banner-intro h2 {
+  color: #fff;
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 1.2;
+}
+
+.banner-intro p {
+  font-size: 1.05rem;
 }
 
 .banner-button {
@@ -772,6 +789,32 @@ button:disabled {
 
 .cookie-consent-panel p {
   line-height: 1.55;
+}
+
+.language-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1rem;
+  margin-top: 1rem;
+  border: 0;
+}
+
+.language-choice legend {
+  width: 100%;
+  margin-bottom: 0.15rem;
+  color: #e5a92e;
+  font-weight: 700;
+}
+
+.language-choice label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.language-choice input {
+  accent-color: #e5a92e;
 }
 
 .cookie-consent-actions {

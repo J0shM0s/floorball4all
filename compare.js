@@ -4,6 +4,7 @@ const googleSheetUrl = "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZA
 let countryData = {};
 let chartInstance = null;
 let radarChartInstance = null;
+const getUiText = (key) => window.floorballI18n?.t(key) || key;
 
 // DOM Elements
 const country1Select = document.getElementById("country1-select");
@@ -60,7 +61,7 @@ async function loadCountryData() {
         document.querySelector(".loading-info").style.display = "none";
     } catch (error) {
         console.error("Fehler beim Laden der Daten:", error);
-        document.querySelector(".loading-info").textContent = "Fehler beim Laden der Daten!";
+        document.querySelector(".loading-info").textContent = getUiText("loadError");
     }
 }
 
@@ -83,21 +84,21 @@ function populateCountrySelects() {
 
 // Wert extrahieren (Nummer oder "Keine Angabe")
 function extractValue(value) {
-    if (!Number.isFinite(value) || value <= 0) return "Keine Angabe";
+    if (!Number.isFinite(value) || value <= 0) return getUiText("noData");
     return value;
 }
 
 function formatComparisonText(type, value) {
     const formattedValue = extractValue(value);
-    if (formattedValue === "Keine Angabe") return `<span class="comparison-text">Keine Angabe</span>`;
+    if (formattedValue === getUiText("noData")) return `<span class="comparison-text">${getUiText("noData")}</span>`;
 
     switch (type) {
         case "trainer":
-            return `<span class="comparison-text">Ausgebildete Trainer:<br><strong>Ca. ${Math.round(formattedValue)} Trainer</strong></span>`;
+            return `<span class="comparison-text">${getUiText("trainedTrainers")}<br><strong>${getUiText("approx")} ${Math.round(formattedValue)} ${getUiText("trainers")}</strong></span>`;
         case "training":
-            return `<span class="comparison-text">Regelmäßige Trainings:<br><strong>Ca. ${Math.round(formattedValue)}</strong></span>`;
+            return `<span class="comparison-text">${getUiText("regularTrainingsLabel")}<br><strong>${getUiText("approx")} ${Math.round(formattedValue)}</strong></span>`;
         case "participant":
-            return `<span class="comparison-text">Teilnehmer gesamt:<br><strong>Ca. ${Math.round(formattedValue)}</strong></span>`;
+            return `<span class="comparison-text">${getUiText("totalParticipants")}<br><strong>${getUiText("approx")} ${Math.round(formattedValue)}</strong></span>`;
         default:
             return `<span class="comparison-text">${formattedValue}</span>`;
     }
@@ -147,7 +148,7 @@ function updateBarChart(data1, data2, name1, name2) {
     chartInstance = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: ["Trainer", "Trainings", "Teilnehmer"],
+            labels: [getUiText("trainers"), getUiText("trainings"), getUiText("participants")],
             datasets: [
                 {
                     label: name1,
@@ -220,7 +221,7 @@ function updateRadarChart(data1, data2, name1, name2) {
     radarChartInstance = new Chart(ctx, {
         type: "radar",
         data: {
-            labels: ["Trainer", "Trainings", "Teilnehmer"],
+            labels: [getUiText("trainers"), getUiText("trainings"), getUiText("participants")],
             datasets: [
                 {
                     label: name1,
@@ -285,6 +286,10 @@ function updateRadarChart(data1, data2, name1, name2) {
 // Event Listener
 country1Select.addEventListener("change", updateCharts);
 country2Select.addEventListener("change", updateCharts);
+
+window.addEventListener("floorball-language-change", () => {
+    updateCharts();
+});
 
 // Daten laden beim Start
 loadCountryData();
