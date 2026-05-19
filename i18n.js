@@ -80,7 +80,8 @@ const floorballTranslations = {
     missionPrimary: "Projektländer",
     missionSecondary: "Zur Floorball4all Website",
     loadError: "Fehler beim Laden der Daten!",
-    noData: "Keine Angabe",
+    noData: "Daten fehlen",
+    exportCsv: "CSV exportieren",
     syncAdded: "fehlende Länder wurden ins Google Sheet ergänzt.",
     syncAll: "Alle Länder sind bereits im Google Sheet.",
     logoutProgress: "Du wirst ausgeloggt...",
@@ -174,6 +175,7 @@ const floorballTranslations = {
     missionSecondary: "Floorball4all website",
     loadError: "Error loading data!",
     noData: "No data",
+    exportCsv: "Export CSV",
     syncAdded: "missing countries were added to the Google Sheet.",
     syncAll: "All countries are already in the Google Sheet.",
     logoutProgress: "Signing out...",
@@ -312,7 +314,12 @@ const applyTranslations = () => {
     setText(".comparison-table tbody tr:nth-child(1) strong", "trainers");
     setText(".comparison-table tbody tr:nth-child(2) strong", "trainings");
     setText(".comparison-table tbody tr:nth-child(3) strong", "participants");
+    setText(".comparison-export-button", "exportCsv");
     setHtml(".loading-info", "loadingData");
+  }
+
+  if (document.querySelector(".dashboard-container")) {
+    setText(".dashboard-export-button", "exportCsv");
   }
 
   setText("#cookie-consent-title", "cookieTitle");

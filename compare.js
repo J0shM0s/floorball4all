@@ -9,8 +9,11 @@ const country2Select = document.getElementById("country2-select");
 const tableCountry1 = document.getElementById("table-country1");
 const tableCountry2 = document.getElementById("table-country2");
 const summaryCards = document.querySelector(".comparison-summary");
+const exportButton = document.querySelector(".comparison-export-button");
 
 const normalizeCountryName = (name) => getDataTools().normalizeCountryName(name);
+const hasProfileData = (profile) => getDataTools().hasProfileData(profile);
+const formatCountWithUnit = (value, unit) => getDataTools().formatCountWithUnit(value, unit);
 
 const populateCountrySelects = () => {
   const countryNames = Object.keys(countryData).sort((a, b) => a.localeCompare(b));
@@ -53,6 +56,8 @@ async function loadCountryData() {
     countryData = {};
 
     Object.values(countryProfiles).forEach((profile) => {
+      if (!hasProfileData(profile)) return;
+
       countryData[profile.name] = {
         name: profile.name,
         trainerCount: getDataTools().toNumber(profile.trainerCount),
@@ -65,6 +70,7 @@ async function loadCountryData() {
 
     populateCountrySelects();
     applyPresetFromUrl();
+    updateCharts();
     document.querySelector(".loading-info").style.display = "none";
   } catch (error) {
     console.error("Fehler beim Laden der Daten:", error);
@@ -178,17 +184,46 @@ function updateBarChart(data1, data2, name1, name2) {
 function updateCharts() {
   const c1 = country1Select.value;
   const c2 = country2Select.value;
-  if (!c1 || !c2) return;
+  if (!c1 || !c2) {
+    if (exportButton) exportButton.disabled = true;
+    return;
+  }
 
   const data1 = countryData[c1];
   const data2 = countryData[c2];
+  if (!data1 || !data2) {
+    if (exportButton) exportButton.disabled = true;
+    return;
+  }
+
   updateTableComparison(data1, data2, c1, c2);
   renderSummaryCards(data1, data2);
   updateBarChart(data1, data2, c1, c2);
+  if (exportButton) exportButton.disabled = false;
 }
+
+const exportComparisonCsv = () => {
+  const c1 = country1Select.value;
+  const c2 = country2Select.value;
+  const data1 = countryData[c1];
+  const data2 = countryData[c2];
+  if (!data1 || !data2) return;
+
+  getDataTools().downloadCsv(
+    `floorball4all-vergleich-${data1.normalized}-${data2.normalized}.csv`,
+    ["Kategorie", data1.name, data2.name],
+    [
+      ["Trainer", formatCountWithUnit(data1.trainerCount, "Trainer"), formatCountWithUnit(data2.trainerCount, "Trainer")],
+      ["Startjahr", data1.startYear || "", data2.startYear || ""],
+      ["Trainings", formatCountWithUnit(data1.trainingCount, "Trainings"), formatCountWithUnit(data2.trainingCount, "Trainings")],
+      ["Teilnehmende", formatCountWithUnit(data1.participantCount, "Teilnehmer"), formatCountWithUnit(data2.participantCount, "Teilnehmer")],
+    ],
+  );
+};
 
 country1Select.addEventListener("change", updateCharts);
 country2Select.addEventListener("change", updateCharts);
+exportButton?.addEventListener("click", exportComparisonCsv);
 window.addEventListener("floorball-language-change", updateCharts);
 
 loadCountryData();

@@ -1,21 +1,28 @@
 const tools = window.floorballData;
 const loadingInfo = document.querySelector(".loading-info");
 const tableBody = document.querySelector(".dashboard-table tbody");
+const exportButton = document.querySelector(".dashboard-export-button");
+let dashboardProfiles = [];
 
 const setMetric = (selector, value) => {
   const element = document.querySelector(selector);
   if (element) element.textContent = `${Math.round(value)}`;
 };
 
-const hasData = (profile) =>
-  [profile.trainerCount, profile.trainingCount, profile.participantCount].some(
-    (value) => tools.toNumber(value) > 0,
-  );
+const hasData = (profile) => tools.hasProfileData(profile);
+const formatCount = (value, unit) => {
+  const number = tools.toNumber(value);
+  if (!number) return "-";
+  return tools.formatCountWithUnit(number, unit);
+};
 
 const renderDashboard = async () => {
   try {
     const { countryProfiles } = await tools.loadCountryProfiles();
     const profiles = Object.values(countryProfiles).filter(hasData);
+    dashboardProfiles = profiles
+      .slice()
+      .sort((a, b) => tools.toNumber(b.participantCount) - tools.toNumber(a.participantCount));
     const totals = profiles.reduce(
       (sum, profile) => ({
         trainers: sum.trainers + tools.toNumber(profile.trainerCount),
@@ -30,25 +37,43 @@ const renderDashboard = async () => {
     setMetric(".dashboard-trainings", totals.trainings);
     setMetric(".dashboard-participants", totals.participants);
 
-    tableBody.innerHTML = profiles
-      .sort((a, b) => tools.toNumber(b.participantCount) - tools.toNumber(a.participantCount))
+    tableBody.innerHTML = dashboardProfiles
       .slice(0, 10)
       .map((profile) => `
         <tr>
           <td><strong>${profile.name}</strong></td>
-          <td>${Math.round(tools.toNumber(profile.trainerCount)) || "-"}</td>
-          <td>${Math.round(tools.toNumber(profile.trainingCount)) || "-"}</td>
-          <td>${Math.round(tools.toNumber(profile.participantCount)) || "-"}</td>
+          <td>${formatCount(profile.trainerCount, "Trainer")}</td>
+          <td>${formatCount(profile.trainingCount, "Trainings")}</td>
+          <td>${formatCount(profile.participantCount, "Teilnehmer")}</td>
           <td><a class="table-link" href="compare.html?country=${encodeURIComponent(profile.name)}">Vergleichen</a></td>
         </tr>
       `)
       .join("");
 
+    if (exportButton) exportButton.disabled = dashboardProfiles.length === 0;
     loadingInfo.style.display = "none";
   } catch (error) {
     console.error("Dashboard konnte nicht geladen werden:", error);
     loadingInfo.textContent = window.floorballI18n?.t("loadError") || "Fehler beim Laden der Daten!";
   }
 };
+
+const exportDashboardCsv = () => {
+  if (!dashboardProfiles.length) return;
+
+  tools.downloadCsv(
+    "floorball4all-dashboard.csv",
+    ["Land", "Trainer", "Startjahr", "Trainings", "Teilnehmende"],
+    dashboardProfiles.map((profile) => [
+      profile.name,
+      formatCount(profile.trainerCount, "Trainer"),
+      profile.startYear || "",
+      formatCount(profile.trainingCount, "Trainings"),
+      formatCount(profile.participantCount, "Teilnehmer"),
+    ]),
+  );
+};
+
+exportButton?.addEventListener("click", exportDashboardCsv);
 
 renderDashboard();

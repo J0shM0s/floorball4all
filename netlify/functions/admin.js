@@ -175,6 +175,58 @@ const getMaxColumnIndex = (columns) =>
     columns.participantIndex,
   );
 
+const normalizeCountWithUnit = (value, unit) => {
+  const text = `${value || ""}`.trim();
+  if (!text) return "";
+  if (/[^\d\s'.,]/.test(text)) return text;
+
+  const compactNumber = text.replace(/'/g, "").replace(/\s+/g, "");
+  if (!/^\d+([,.]\d+)?$/.test(compactNumber)) return text;
+
+  const number = Number.parseFloat(compactNumber.replace(",", "."));
+  const formattedNumber = Number.isInteger(number) ? `${number}` : compactNumber.replace(".", ",");
+  return `${formattedNumber} ${unit}`;
+};
+
+const normalizeProjectDataUnits = (row, columns) => {
+  const nextRow = [...row];
+  nextRow[columns.trainerIndex] = normalizeCountWithUnit(nextRow[columns.trainerIndex], "Trainer");
+  nextRow[columns.trainingIndex] = normalizeCountWithUnit(nextRow[columns.trainingIndex], "Trainings");
+  nextRow[columns.participantIndex] = normalizeCountWithUnit(nextRow[columns.participantIndex], "Teilnehmer");
+  return nextRow;
+};
+
+const normalizeExistingSheetUnits = async (accessToken, spreadsheetId, sheetName, rows, columns, maxIndex) => {
+  const normalizedRows = rows.map((row, index) => {
+    const nextRow = [...row];
+    while (nextRow.length <= maxIndex) {
+      nextRow.push("");
+    }
+
+    return index === 0 ? nextRow : normalizeProjectDataUnits(nextRow, columns);
+  });
+
+  const changed = normalizedRows.some((row, rowIndex) =>
+    row.some((value, columnIndex) => `${value || ""}` !== `${rows[rowIndex]?.[columnIndex] || ""}`),
+  );
+
+  if (!changed) return false;
+
+  const updateRange = encodeURIComponent(`${quoteSheetName(sheetName)}!A1`);
+  await sheetsRequest(
+    accessToken,
+    `${spreadsheetId}/values/${updateRange}?valueInputOption=USER_ENTERED`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        values: normalizedRows,
+      }),
+    },
+  );
+
+  return true;
+};
+
 const saveCountryData = async (data) => {
   const accessToken = await getGoogleAccessToken();
   const { spreadsheetId, sheetName } = getSheetConfig();
@@ -196,6 +248,7 @@ const saveCountryData = async (data) => {
   nextRow[columns.startIndex] = data.startYear || "";
   nextRow[columns.trainingIndex] = data.trainingCount || "";
   nextRow[columns.participantIndex] = data.participantCount || "";
+  const normalizedRow = normalizeProjectDataUnits(nextRow, columns);
 
   if (rowIndex === -1) {
     const appendRange = encodeURIComponent(`${quoteSheetName(sheetName)}!A:Z`);
@@ -205,7 +258,7 @@ const saveCountryData = async (data) => {
       {
         method: "POST",
         body: JSON.stringify({
-          values: [nextRow],
+          values: [normalizedRow],
         }),
       },
     );
@@ -220,7 +273,7 @@ const saveCountryData = async (data) => {
     {
       method: "PUT",
       body: JSON.stringify({
-        values: [nextRow],
+        values: [normalizedRow],
       }),
     },
   );
@@ -233,6 +286,7 @@ const syncCountriesData = async (countries) => {
   const headers = rows[0] || ["Land", "Trainer", "Startjahr", "Trainings", "Teilnehmer"];
   const columns = getSheetColumns(headers);
   const maxIndex = getMaxColumnIndex(columns);
+  await normalizeExistingSheetUnits(accessToken, spreadsheetId, sheetName, rows, columns, maxIndex);
   const existingCountries = new Set(
     rows
       .slice(1)

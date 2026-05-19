@@ -322,9 +322,16 @@ body {
   padding: 2rem 0 4rem;
 }
 
-.map-conatiner {
+.map-container {
   width: min(1200px, 95vw);
   margin: 0 auto;
+}
+
+.cache-status {
+  flex: 0 0 auto;
+  color: #b9dce2;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .map-loader {
@@ -490,6 +497,12 @@ path.active-country {
   line-height: 1.25;
 }
 
+.country-stat span.is-missing {
+  color: #b9dce2;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 .country-compare-link {
   width: 100%;
   margin: 1.25rem 0 0;
@@ -520,6 +533,12 @@ path.active-country {
   z-index: 4;
 }
 
+.country-tooltip-details {
+  color: #b9dce2;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
 .country-tooltip.show {
   display: flex;
 }
@@ -528,6 +547,36 @@ path.active-country {
   width: 1.6rem;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+.export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid #e5a92e;
+  background-color: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: rgba(229, 169, 46, 0.16);
+}
+
+.export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .map-tools {

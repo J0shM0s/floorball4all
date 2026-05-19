@@ -1,5 +1,5 @@
 const loadWorldMapSvg = async () => {
-  const mapContainer = document.querySelector(".map-conatiner");
+  const mapContainer = document.querySelector(".map-container");
   if (!mapContainer) return document.querySelector("svg");
 
   try {
@@ -34,7 +34,7 @@ const countrySearchInput = document.querySelector(".country-search-input");
 const countrySearchOptions = document.querySelector("#country-search-options");
 const countrySearchMessage = document.querySelector(".country-search-message");
 const mobileCountrySelect = document.querySelector(".mobile-country-select");
-const countryNameOutlut = document.querySelector(".country-name");
+const countryNameOutput = document.querySelector(".country-name");
 const countryFlagOutput = document.querySelector(".country-flag");
 const countryCompareLink = document.querySelector(".country-compare-link");
 const summaryActiveCountries = document.querySelector(".summary-active-countries");
@@ -58,9 +58,6 @@ const adminStartInput = document.querySelector(".admin-start-input");
 const adminTrainingInput = document.querySelector(".admin-training-input");
 const adminParticipantInput = document.querySelector(".admin-participant-input");
 const adminMessage = document.querySelector(".admin-message");
-const sheetCacheKey = "floorball4allSheetCsv";
-const sheetCacheTimeKey = "floorball4allSheetCsvTime";
-const sheetCacheTtl = 15 * 60 * 1000;
 
 let zoomLevel = 1;
 let panX = 0;
@@ -172,49 +169,6 @@ const activeCountryStrokeWidth = "1.4";
 const getUiText = (key) => window.floorballI18n?.t(key) || key;
 const getUiLanguage = () => window.floorballI18n?.getLanguage() || "de";
 
-const parseCsv = (csvText) => {
-  const rows = [];
-  let row = [];
-  let value = "";
-  let insideQuotes = false;
-
-  for (let index = 0; index < csvText.length; index++) {
-    const character = csvText[index];
-    const nextCharacter = csvText[index + 1];
-
-    if (character === '"') {
-      if (insideQuotes && nextCharacter === '"') {
-        value += '"';
-        index++;
-      } else {
-        insideQuotes = !insideQuotes;
-      }
-      continue;
-    }
-
-    if (character === "," && !insideQuotes) {
-      row.push(value);
-      value = "";
-      continue;
-    }
-
-    if ((character === "\n" || character === "\r") && !insideQuotes) {
-      if (character === "\r" && nextCharacter === "\n") index++;
-      row.push(value);
-      if (row.some((cell) => cell.trim())) rows.push(row);
-      row = [];
-      value = "";
-      continue;
-    }
-
-    value += character;
-  }
-
-  row.push(value);
-  if (row.some((cell) => cell.trim())) rows.push(row);
-  return rows;
-};
-
 const defaultProfile = {
   flag: "",
   trainerCount: "Keine Angabe",
@@ -254,56 +208,6 @@ const callAdminApi = async (payload) => {
   }
 
   return result;
-};
-
-const getCachedSheetCsv = () => {
-  try {
-    const cachedCsv = localStorage.getItem(sheetCacheKey);
-    const cachedAt = Number(localStorage.getItem(sheetCacheTimeKey));
-    if (!cachedCsv || !cachedAt || Date.now() - cachedAt > sheetCacheTtl) return null;
-    return cachedCsv;
-  } catch (error) {
-    return null;
-  }
-};
-
-const getAnyCachedSheetCsv = () => {
-  try {
-    return localStorage.getItem(sheetCacheKey);
-  } catch (error) {
-    return null;
-  }
-};
-
-const setCachedSheetCsv = (csvText) => {
-  try {
-    localStorage.setItem(sheetCacheKey, csvText);
-    localStorage.setItem(sheetCacheTimeKey, `${Date.now()}`);
-  } catch (error) {
-    console.warn("Sheet-Cache konnte nicht gespeichert werden.", error);
-  }
-};
-
-const fetchSheetCsv = async (options = {}) => {
-  if (window.floorballData?.fetchSheetCsv) {
-    const result = await window.floorballData.fetchSheetCsv(options);
-    return result.csvText;
-  }
-
-  const cachedCsv = options.forceRefresh ? null : getCachedSheetCsv();
-  if (cachedCsv) return cachedCsv;
-
-  try {
-    const response = await fetch(googleSheetUrl);
-    if (!response.ok) throw new Error("Network response was not ok");
-    const csvText = await response.text();
-    setCachedSheetCsv(csvText);
-    return csvText;
-  } catch (error) {
-    const staleCsv = getAnyCachedSheetCsv();
-    if (staleCsv) return staleCsv;
-    throw error;
-  }
 };
 
 const getSelectedAdminCountry = () =>
@@ -586,7 +490,9 @@ const hasProfileAnswer = (answer) => {
   return (
     normalizedAnswer &&
     normalizedAnswer !== "n/a" &&
-    normalizedAnswer !== "keine angabe"
+    normalizedAnswer !== "keine angabe" &&
+    normalizedAnswer !== "daten fehlen" &&
+    normalizedAnswer !== "no data"
   );
 };
 
@@ -602,8 +508,26 @@ const getProfileMetric = (profile, metric) => {
   return 0;
 };
 
-const formatProfileValue = (value) =>
-  `${value || ""}`.trim() === "Keine Angabe" ? getUiText("noData") : value;
+const setProfileOutput = (element, value) => {
+  if (!element) return;
+  const hasValue = hasProfileAnswer(value);
+  element.textContent = hasValue ? value : getUiText("noData");
+  element.classList.toggle("is-missing", !hasValue);
+};
+
+const formatProfileCount = (value, unit) => {
+  if (!hasProfileAnswer(value)) return getUiText("noData");
+  return window.floorballData?.formatCountWithUnit
+    ? window.floorballData.formatCountWithUnit(value, unit)
+    : value;
+};
+
+const setProfileCountOutput = (element, value, unit) => {
+  if (!element) return;
+  const hasValue = hasProfileAnswer(value);
+  element.textContent = hasValue ? formatProfileCount(value, unit) : getUiText("noData");
+  element.classList.toggle("is-missing", !hasValue);
+};
 
 const isActiveCountry = (country) => {
   const profile = getCountryProfile(country);
@@ -685,11 +609,15 @@ countryTooltip.className = "country-tooltip";
 countryTooltip.setAttribute("aria-hidden", "true");
 countryTooltip.innerHTML = `
   <img class="country-tooltip-flag" alt="" />
-  <span class="country-tooltip-name"></span>
+  <span>
+    <span class="country-tooltip-name"></span>
+    <span class="country-tooltip-details"></span>
+  </span>
 `;
 worldMapSection?.appendChild(countryTooltip);
 const countryTooltipFlag = countryTooltip.querySelector(".country-tooltip-flag");
 const countryTooltipName = countryTooltip.querySelector(".country-tooltip-name");
+const countryTooltipDetails = countryTooltip.querySelector(".country-tooltip-details");
 
 const positionCountryTooltip = (event) => {
   if (!worldMapSection || !countryTooltip) return;
@@ -701,7 +629,13 @@ const positionCountryTooltip = (event) => {
 
 const showCountryTooltip = (country, event) => {
   const flagUrl = getCountryFlagUrl(country);
+  const profile = getCountryProfile(country);
+  const trainerCount = parseProfileNumber(profile.trainerCount);
+  const participantCount = parseProfileNumber(profile.participantCount);
   countryTooltipName.textContent = getLocalizedCountryName(country);
+  countryTooltipDetails.textContent = isActiveCountry(country)
+    ? `${Math.round(trainerCount)} ${getUiText("trainers")} - ${Math.round(participantCount)} ${getUiText("participants")}`
+    : getUiText("noData");
   if (flagUrl) {
     countryTooltipFlag.src = flagUrl;
     countryTooltipFlag.hidden = false;
@@ -717,52 +651,15 @@ const hideCountryTooltip = () => {
   countryTooltip.classList.remove("show");
 };
 
-const googleSheetUrl =
-  "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZAaYyJck9_vimowPV1-3MaQqX2Dbw/export?format=csv";
-
 const loadSheetProfiles = (options = {}) =>
-  fetchSheetCsv(options)
-  .then((csv) => {
-    const rows = parseCsv(csv);
-    const headers = rows[0] || [];
-
-    const countryIndex = headers.findIndex((h) =>
-      h.toLowerCase().includes("land"),
-    );
-    const trainerIndex = headers.findIndex((h) =>
-      h.toLowerCase().includes("trainer"),
-    );
-    const startIndex = headers.findIndex((h) =>
-      h.toLowerCase().includes("startjahr"),
-    );
-    const trainingIndex = headers.findIndex((h) =>
-      h.toLowerCase().includes("trainings"),
-    );
-    const participantIndex = headers.findIndex((h) =>
-      h.toLowerCase().includes("teilnehmer"),
-    );
-
-    countryProfiles = {};
-    normalizedCountryProfiles = {};
-
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      if (row[countryIndex]) {
-        const countryName = row[countryIndex].trim();
-        const profile = {
-          trainerCount: row[trainerIndex]?.trim() || "Keine Angabe",
-          startYear: row[startIndex]?.trim() || "Keine Angabe",
-          trainingCount: row[trainingIndex]?.trim() || "Keine Angabe",
-          participantCount: row[participantIndex]?.trim() || "Keine Angabe",
-        };
-        countryProfiles[countryName] = profile;
-        normalizedCountryProfiles[normalizeCountryName(countryName)] = profile;
-      }
-    }
+  window.floorballData.loadCountryProfiles(options)
+  .then((result) => {
+    countryProfiles = result.countryProfiles;
+    normalizedCountryProfiles = result.normalizedCountryProfiles;
     fillAdminCountrySelect();
     fillCountryPickers();
     renderMapSummary();
-    renderCacheStatus(options.forceRefresh ? "network" : "");
+    renderCacheStatus(result.source);
     updateActiveCountryHighlights();
   })
   .catch((error) => {
@@ -797,14 +694,15 @@ const openCountry = (country) => {
   };
   countryFlagOutput.src = flagUrl;
   countryFlagOutput.hidden = !flagUrl;
-  countryNameOutlut.innerText = localizedCountryName;
-  trainercount.innerText = formatProfileValue(profile.trainerCount);
-  startyear.innerText = formatProfileValue(profile.startYear);
-  trainingcount.innerText = formatProfileValue(profile.trainingCount);
-  participantcount.innerText = formatProfileValue(profile.participantCount);
+  countryNameOutput.innerText = localizedCountryName;
+  setProfileCountOutput(trainercount, profile.trainerCount, "Trainer");
+  setProfileOutput(startyear, profile.startYear);
+  setProfileCountOutput(trainingcount, profile.trainingCount, "Trainings");
+  setProfileCountOutput(participantcount, profile.participantCount, "Teilnehmer");
   if (countryCompareLink) {
     countryCompareLink.href = `compare.html?country=${encodeURIComponent(localizedCountryName)}`;
     countryCompareLink.textContent = `${localizedCountryName} vergleichen`;
+    countryCompareLink.hidden = !isActiveCountry(country);
   }
   loading.classList.add("hide");
   container.classList.remove("hide");
@@ -941,18 +839,24 @@ window.addEventListener("floorball-language-change", () => {
   updateCountryAccessibility();
   fillCountryPickers();
   clearCountrySearchMessage();
-  const openedCountryName = countryNameOutlut?.textContent;
+  const openedCountryName = countryNameOutput?.textContent;
   if (!sidePanel?.classList.contains("side-panel-open") || !openedCountryName) return;
 
   const openedCountry = findCountryByName(openedCountryName);
   if (openedCountry) {
     const profile = getCountryProfile(openedCountry);
-    countryNameOutlut.innerText = getLocalizedCountryName(openedCountry);
-    countryFlagOutput.alt = getLocalizedCountryName(openedCountry);
-    trainercount.innerText = formatProfileValue(profile.trainerCount);
-    startyear.innerText = formatProfileValue(profile.startYear);
-    trainingcount.innerText = formatProfileValue(profile.trainingCount);
-    participantcount.innerText = formatProfileValue(profile.participantCount);
+    const localizedName = getLocalizedCountryName(openedCountry);
+    countryNameOutput.innerText = localizedName;
+    countryFlagOutput.alt = localizedName;
+    setProfileCountOutput(trainercount, profile.trainerCount, "Trainer");
+    setProfileOutput(startyear, profile.startYear);
+    setProfileCountOutput(trainingcount, profile.trainingCount, "Trainings");
+    setProfileCountOutput(participantcount, profile.participantCount, "Teilnehmer");
+    if (countryCompareLink) {
+      countryCompareLink.href = `compare.html?country=${encodeURIComponent(localizedName)}`;
+      countryCompareLink.textContent = `${localizedName} vergleichen`;
+      countryCompareLink.hidden = !isActiveCountry(openedCountry);
+    }
   }
 });
 

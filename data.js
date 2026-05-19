@@ -159,6 +159,52 @@
     return Number.isFinite(parsed) ? parsed : 0;
   };
 
+  const hasProfileData = (profile) =>
+    Boolean(profile) &&
+    [profile.trainerCount, profile.startYear, profile.trainingCount, profile.participantCount].some((value) => {
+      const normalizedValue = `${value || ""}`.trim().toLowerCase();
+      return (
+        normalizedValue &&
+        normalizedValue !== "n/a" &&
+        normalizedValue !== "keine angabe" &&
+        normalizedValue !== "daten fehlen" &&
+        normalizedValue !== "no data"
+      );
+    });
+
+  const formatCountWithUnit = (value, unit) => {
+    const text = `${value || ""}`.trim();
+    if (!text) return "";
+    if (/[^\d\s'.,]/.test(text)) return text;
+
+    const compactNumber = text.replace(/'/g, "").replace(/\s+/g, "");
+    if (!/^\d+([,.]\d+)?$/.test(compactNumber)) return text;
+
+    const number = Number.parseFloat(compactNumber.replace(",", "."));
+    const formattedNumber = Number.isInteger(number) ? `${number}` : compactNumber.replace(".", ",");
+    return `${formattedNumber} ${unit}`;
+  };
+
+  const formatCsvCell = (value) => {
+    const text = `${value ?? ""}`;
+    return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+
+  const downloadCsv = (filename, headers, rows) => {
+    const csv = [headers, ...rows]
+      .map((row) => row.map(formatCsvCell).join(";"))
+      .join("\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const loadCountryProfiles = async (options) => {
     const result = await fetchSheetCsv(options);
     return {
@@ -170,9 +216,12 @@
 
   window.floorballData = {
     clearSheetCache,
+    downloadCsv,
     fetchSheetCsv,
+    formatCountWithUnit,
     getSheetCacheInfo,
     googleSheetUrl,
+    hasProfileData,
     loadCountryProfiles,
     normalizeCountryName,
     parseCountryProfiles,
