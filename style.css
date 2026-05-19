@@ -71,7 +71,7 @@ body {
 
 .banner-intro {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   margin: 0 auto 0.5rem;
   max-width: 52rem;
 }
@@ -109,14 +109,12 @@ body {
   transform: translateY(-1px);
 }
 
-.secondary-button,
-.banner-button[href="#world"] + .banner-button + .banner-button {
+.secondary-button {
   background-color: transparent;
   color: #fff;
 }
 
-.secondary-button:hover,
-.banner-button[href="#world"] + .banner-button + .banner-button:hover {
+.secondary-button:hover {
   background-color: rgba(229, 169, 46, 0.16);
 }
 
@@ -308,6 +306,7 @@ body {
   position: relative;
   content-visibility: auto;
   contain-intrinsic-size: 900px;
+  background-color: #0b2235;
 }
 
 .world-map {
@@ -326,6 +325,14 @@ body {
 .map-conatiner {
   width: min(1200px, 95vw);
   margin: 0 auto;
+}
+
+.map-loader {
+  min-height: 45vh;
+  display: grid;
+  place-items: center;
+  color: #e5a92e;
+  font-weight: 800;
 }
 
 svg {
@@ -483,6 +490,11 @@ path.active-country {
   line-height: 1.25;
 }
 
+.country-compare-link {
+  width: 100%;
+  margin: 1.25rem 0 0;
+}
+
 .side-panel strong {
   color: #fff;
 }
@@ -519,18 +531,50 @@ path.active-country {
 }
 
 .map-tools {
-  position: absolute;
-  top: 1em;
-  right: 1em;
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.75em;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.65rem;
   z-index: 2;
+  width: 100%;
+  min-height: 4.25rem;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  border-block: 1px solid rgba(96, 176, 191, 0.35);
+  background-color: rgba(6, 30, 45, 0.86);
+  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.map-summary {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.45rem;
+  color: #fff;
+}
+
+.map-summary span {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(96, 176, 191, 0.75);
+  background-color: rgba(6, 30, 45, 0.9);
+  font-size: 0.76rem;
+  line-height: 1.15;
+}
+
+.map-summary strong {
+  margin-right: 0.25rem;
+  color: #e5a92e;
+  font-size: 1.05rem;
 }
 
 .active-countries-toggle {
-  min-height: 3em;
+  flex: 0 0 auto;
+  min-height: 2.75rem;
   display: flex;
   align-items: center;
   gap: 0.55em;
@@ -541,6 +585,7 @@ path.active-country {
   font-size: 0.95em;
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
 }
 
 .active-countries-checkbox {
@@ -550,21 +595,57 @@ path.active-country {
   cursor: pointer;
 }
 
-.zoom-controls {
-  position: absolute;
-  top: calc(100% + 0.75em);
-  right: 0;
+.map-filter-group {
   display: flex;
-  flex-direction: column;
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  border: 1px solid #60b0bf;
+  background-color: #061e2d;
+}
+
+.map-filter-group select,
+.map-filter-group input {
+  min-width: 0;
+  border: 0;
+  background-color: transparent;
+  color: #fff;
+  font: inherit;
+}
+
+.map-filter-group select {
+  width: 10rem;
+  padding: 0 0.75rem;
+}
+
+.map-filter-group input {
+  width: 5rem;
+  border-left: 1px solid rgba(96, 176, 191, 0.65);
+  padding: 0 0.65rem;
+}
+
+.map-filter-group option {
+  background-color: #061e2d;
+}
+
+.zoom-controls {
+  position: static;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
   align-items: center;
-  gap: 0;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-height: 2.75rem;
 }
 
 .zoom-controls button {
-  display: block;
-  width: 1.5em;
-  height: 1.5em;
-  font-size: 2em;
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  font-size: 1.35rem;
+  line-height: 1;
   background-color: #008099;
   color: #fff;
   border: 1px #e5a92e solid;
@@ -577,20 +658,22 @@ path.active-country {
 }
 
 .map-reset-button {
-  font-size: 1.2em !important;
+  font-size: 1.15rem !important;
 }
 
 .country-search-message {
-  flex-basis: 100%;
-  min-height: 1.4rem;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  max-width: 14rem;
   color: #e5a92e;
-  font-size: 0.95rem;
-  text-align: right;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .mobile-country-select {
   display: none;
-  min-height: 3em;
+  min-height: 2.75rem;
   max-width: min(22em, 85vw);
   padding: 0 0.85em;
   border: 1px #e5a92e solid;
@@ -641,17 +724,17 @@ button:disabled {
 
   .world-map {
     min-height: 55vh;
-    padding: 1.5rem 0 8rem;
+    padding: 1.5rem 0 4rem;
   }
 
   .map-tools {
-    top: auto;
-    bottom: 1rem;
-    left: 1rem;
-    right: 1rem;
-    flex-direction: row;
-    flex-wrap: wrap;
+    min-height: 4rem;
     gap: 0.5rem;
+    padding: 0.65rem;
+  }
+
+  .map-summary {
+    display: flex;
   }
 
   .country-search {
@@ -659,15 +742,22 @@ button:disabled {
   }
 
   .active-countries-toggle {
-    flex: 1 1 100%;
     min-height: 2.75rem;
     justify-content: center;
     font-size: 0.9rem;
   }
 
+  .map-filter-group {
+    min-width: 16rem;
+  }
+
+  .map-filter-group select {
+    width: 100%;
+  }
+
   .mobile-country-select {
     display: block;
-    flex: 1 1 13rem;
+    flex: 0 0 13rem;
     max-width: none;
   }
 
@@ -676,16 +766,14 @@ button:disabled {
   }
 
   .zoom-controls {
-    position: static;
-    transform: none;
-    flex-direction: row;
+    justify-content: flex-end;
     gap: 0.5rem;
   }
 
   .zoom-controls button {
-    width: 2.2em;
-    height: 2.2em;
-    font-size: 1.5em;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.2rem;
   }
 
   .zoom-out {
@@ -729,7 +817,7 @@ button:disabled {
 }
 
 .zoom-out {
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 @media (max-width: 768px) {
@@ -740,13 +828,16 @@ button:disabled {
 
 .country-search {
   display: flex;
-  height: 3em;
+  flex: 0 0 auto;
+  height: 2.75rem;
+  min-width: 0;
   border: 1px #e5a92e solid;
   background-color: #008099;
 }
 
 .country-search-input {
-  width: min(15em, 48vw);
+  width: min(16rem, 30vw);
+  min-width: 9rem;
   padding: 0 0.9em;
   border: none;
   outline: none;
@@ -760,18 +851,27 @@ button:disabled {
 }
 
 .country-search-button {
-  width: 3em;
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  flex: 0 0 2.75rem;
   border: none;
   border-left: 1px #e5a92e solid;
   background-color: #008099;
   color: #fff;
   cursor: pointer;
-  font-size: 1em;
+  font-size: 1rem;
 }
 
 .country-search-button:hover,
 .country-search-input:focus + .country-search-button {
   background-color: #60b0bf;
+}
+
+@media (max-width: 768px) {
+  .country-search {
+    display: none;
+  }
 }
 
 .mission-section {
@@ -913,6 +1013,34 @@ button:disabled {
   margin-bottom: 3rem;
 }
 
+.comparison-summary,
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  padding: 1.25rem;
+  border: 1px solid rgba(96, 176, 191, 0.55);
+  background-color: #213448;
+}
+
+.metric-card span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #b9dce2;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.metric-card strong {
+  color: #e5a92e;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 1;
+}
+
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -1001,6 +1129,15 @@ button:disabled {
 }
 
 .comparison-table td strong {
+  color: #e5a92e;
+}
+
+.table-link {
+  color: #60b0bf;
+  font-weight: 800;
+}
+
+.table-link:hover {
   color: #e5a92e;
 }
 

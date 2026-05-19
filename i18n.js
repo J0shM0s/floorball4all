@@ -9,8 +9,8 @@ const floorballTranslations = {
     heroTitle: "Floorball4all Daten Übersicht",
     heroIntroTitle: "Herzlich Willkommen auf meiner interaktiven Weltkarte!",
     heroIntro:
-      "Schön, dass du da bist! Mit dieser Karte möchte ich dir einen Einblick in die weltweite Arbeit von Floorball4all bzw. Unihockey für Strassenkinder geben. Ich habe dieses Tool entwickelt, damit du die positiven Veränderungen, die durch diesen Sport entstehen, ganz einfach selbst entdecken kannst.",
-    heroHow: "So funktioniert es:",
+      "Schön, dass du da bist! Mit dieser Karte kannst du entdecken, wo Floorball4all wirkt und welche Projektzahlen in den Ländern sichtbar werden.",
+    heroHow: "Klicke ein Land an, suche gezielt nach Projekten oder vergleiche zwei Länder direkt miteinander.",
     heroCountry:
       "<strong>Länder-Infos auf einen Blick:</strong> Klicke einfach auf ein beliebiges Land auf der Karte. Du erhältst sofort spannende Statistiken zu den Projekten und der Arbeit von Floorball4all vor Ort.",
     heroCompare:
@@ -102,8 +102,8 @@ const floorballTranslations = {
     heroTitle: "Floorball4all Data Overview",
     heroIntroTitle: "Welcome to my interactive world map!",
     heroIntro:
-      "It's great to have you here! With this map, I want to give you an insight into the worldwide work of Floorball4all and Unihockey für Strassenkinder. I developed this tool so you can easily discover the positive change created through this sport.",
-    heroHow: "How it works:",
+      "It's great to have you here! Use this map to discover where Floorball4all is active and which project figures are visible in each country.",
+    heroHow: "Click a country, search for projects, or compare two countries directly.",
     heroCountry:
       "<strong>Country information at a glance:</strong> Click any country on the map. You will immediately see interesting statistics, current figures, and deeper information about the projects and the work of Floorball4all on site.",
     heroCompare:
@@ -232,7 +232,7 @@ const updateLanguageSwitchButtons = (language) => {
     const nextLanguageLabel = language === "en" ? "Deutsch" : "English";
     button.setAttribute("aria-label", t("switchLanguage"));
     button.setAttribute("title", t("switchLanguage"));
-    button.innerHTML = `<span class="ui-icon" aria-hidden="true">◎</span><span>${nextLanguageLabel}</span>`;
+    button.innerHTML = `<span class="ui-icon" aria-hidden="true">◉</span><span>${nextLanguageLabel}</span>`;
   });
 };
 
@@ -254,10 +254,7 @@ const applyTranslations = () => {
     setText(".banner-content h1", "heroTitle");
     setText(".banner-intro h2", "heroIntroTitle");
     setText(".banner-intro p:nth-of-type(1)", "heroIntro");
-    setHtml(".banner-intro p:nth-of-type(2)", `<strong>${t("heroHow")}</strong>`);
-    setHtml(".banner-intro p:nth-of-type(3)", "heroCountry");
-    setHtml(".banner-intro p:nth-of-type(4)", "heroCompare");
-    setText(".banner-intro p:nth-of-type(5)", "heroOutro");
+    setText(".banner-intro p:nth-of-type(2)", "heroHow");
     setText('.banner-button[href="#world"]', "worldButton");
     setHtml('.banner-button[href="compare.html"]', "compareButton");
     setText("#admin-title", "adminTitle");
@@ -298,7 +295,7 @@ const applyTranslations = () => {
     setText(".mission-actions .secondary-button", "missionSecondary");
   }
 
-  if (document.querySelector(".compare-container")) {
+  if (document.querySelector(".compare-container") && !document.querySelector(".dashboard-container")) {
     document.title = t("compareTitlePage");
     setText(".banner-content h1", "compareTitle");
     setText(".banner-content p", "compareSubtitle");

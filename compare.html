@@ -11,7 +11,7 @@
 <body>
     <header class="hero-banner">
         <button class="language-switch-button" type="button" aria-label="Zu Englisch wechseln">
-            <span class="ui-icon" aria-hidden="true">◎</span>
+            <span class="ui-icon" aria-hidden="true">◉</span>
             <span>English</span>
         </button>
         <div class="banner-content">
@@ -40,11 +40,13 @@
             </div>
         </section>
 
+        <section class="comparison-summary" aria-label="Vergleichszusammenfassung"></section>
+
   
         <section class="charts-section">
             <div class="charts-grid">
                 <div class="chart-wrapper">
-                    <h3>Datenervergleich</h3>
+                    <h3>Datenvergleich</h3>
                     <canvas id="comparisonChart"></canvas>
                 </div>
             </div>
@@ -115,6 +117,7 @@
     </div>
 
     <script src="i18n.js"></script>
+    <script src="data.js"></script>
     <script src="compare.js"></script>
 </body>
 </html>

@@ -1,4 +1,22 @@
-const map = document.querySelector("svg");
+const loadWorldMapSvg = async () => {
+  const mapContainer = document.querySelector(".map-conatiner");
+  if (!mapContainer) return document.querySelector("svg");
+
+  try {
+    const response = await fetch("assets/world-map.svg");
+    if (!response.ok) throw new Error("World map SVG could not be loaded");
+    mapContainer.innerHTML = await response.text();
+    return mapContainer.querySelector("svg");
+  } catch (error) {
+    console.error("Fehler beim Laden der Weltkarte:", error);
+    const loader = mapContainer.querySelector(".map-loader");
+    if (loader) loader.textContent = "Weltkarte konnte nicht geladen werden.";
+    return null;
+  }
+};
+
+const map = await loadWorldMapSvg();
+if (!map) throw new Error("World map SVG missing");
 const worldMapSection = document.querySelector(".world-map");
 const countries = map.querySelectorAll("path");
 const sidePanel = document.querySelector(".side-panel");
@@ -18,6 +36,14 @@ const countrySearchMessage = document.querySelector(".country-search-message");
 const mobileCountrySelect = document.querySelector(".mobile-country-select");
 const countryNameOutlut = document.querySelector(".country-name");
 const countryFlagOutput = document.querySelector(".country-flag");
+const countryCompareLink = document.querySelector(".country-compare-link");
+const summaryActiveCountries = document.querySelector(".summary-active-countries");
+const summaryTrainers = document.querySelector(".summary-trainers");
+const summaryParticipants = document.querySelector(".summary-participants");
+const mapFilterSelect = document.querySelector(".map-filter-select");
+const mapFilterMin = document.querySelector(".map-filter-min");
+const cacheStatus = document.querySelector(".cache-status");
+const sheetRefreshButton = document.querySelector(".sheet-refresh-button");
 const adminLoginButton = document.querySelector(".admin-login-button");
 const adminModal = document.querySelector(".admin-modal");
 const adminCloseButton = document.querySelector(".admin-close-button");
@@ -133,6 +159,8 @@ let countryProfiles = {};
 let normalizedCountryProfiles = {};
 let showActiveCountries = true;
 let adminCountriesSynced = false;
+let currentMapFilter = "all";
+let currentMapFilterMin = 0;
 const selectedActiveCountryKeys = new Set();
 const defaultCountryFill = "#173044";
 const hoverCountryFill = "#ffffff";
@@ -256,8 +284,13 @@ const setCachedSheetCsv = (csvText) => {
   }
 };
 
-const fetchSheetCsv = async () => {
-  const cachedCsv = getCachedSheetCsv();
+const fetchSheetCsv = async (options = {}) => {
+  if (window.floorballData?.fetchSheetCsv) {
+    const result = await window.floorballData.fetchSheetCsv(options);
+    return result.csvText;
+  }
+
+  const cachedCsv = options.forceRefresh ? null : getCachedSheetCsv();
   if (cachedCsv) return cachedCsv;
 
   try {
@@ -557,6 +590,18 @@ const hasProfileAnswer = (answer) => {
   );
 };
 
+const parseProfileNumber = (value) =>
+  window.floorballData?.toNumber
+    ? window.floorballData.toNumber(value)
+    : Number.parseFloat(`${value || ""}`.replace(",", ".")) || 0;
+
+const getProfileMetric = (profile, metric) => {
+  if (metric === "trainers") return parseProfileNumber(profile.trainerCount);
+  if (metric === "trainings") return parseProfileNumber(profile.trainingCount);
+  if (metric === "participants") return parseProfileNumber(profile.participantCount);
+  return 0;
+};
+
 const formatProfileValue = (value) =>
   `${value || ""}`.trim() === "Keine Angabe" ? getUiText("noData") : value;
 
@@ -570,10 +615,20 @@ const isActiveCountry = (country) => {
   );
 };
 
+const matchesCurrentMapFilter = (country) => {
+  const profile = getCountryProfile(country);
+  if (currentMapFilter === "all") return true;
+  if (currentMapFilter === "missing") return !isActiveCountry(country);
+  return getProfileMetric(profile, currentMapFilter) >= currentMapFilterMin;
+};
+
 const updateCountryFill = (country) => {
+  const passesFilter = matchesCurrentMapFilter(country);
+  const shouldShowFilteredCountry =
+    currentMapFilter === "missing" ? passesFilter : isActiveCountry(country) && passesFilter;
   const shouldHighlight =
     selectedActiveCountryKeys.has(getCountryKey(country)) ||
-    (showActiveCountries && isActiveCountry(country));
+    (showActiveCountries && shouldShowFilteredCountry);
   country.classList.toggle("active-country", shouldHighlight);
   country.style.fill = shouldHighlight ? activeCountryFill : defaultCountryFill;
   country.style.stroke = shouldHighlight
@@ -586,6 +641,37 @@ const updateCountryFill = (country) => {
 
 const updateActiveCountryHighlights = () => {
   countries.forEach(updateCountryFill);
+};
+
+const renderMapSummary = () => {
+  const activeProfiles = Array.from(countries)
+    .filter(isActiveCountry)
+    .map(getCountryProfile);
+  const totalTrainers = activeProfiles.reduce(
+    (sum, profile) => sum + parseProfileNumber(profile.trainerCount),
+    0,
+  );
+  const totalParticipants = activeProfiles.reduce(
+    (sum, profile) => sum + parseProfileNumber(profile.participantCount),
+    0,
+  );
+
+  if (summaryActiveCountries) summaryActiveCountries.textContent = `${activeProfiles.length}`;
+  if (summaryTrainers) summaryTrainers.textContent = `${Math.round(totalTrainers)}`;
+  if (summaryParticipants) summaryParticipants.textContent = `${Math.round(totalParticipants)}`;
+};
+
+const renderCacheStatus = (source = "") => {
+  if (!cacheStatus) return;
+  const info = window.floorballData?.getSheetCacheInfo?.();
+  if (!info?.cachedAt) {
+    cacheStatus.textContent = "";
+    return;
+  }
+
+  const date = new Date(info.cachedAt);
+  const sourceText = source === "stale-cache" ? "Offline-Daten" : "Daten";
+  cacheStatus.textContent = `${sourceText} aktualisiert: ${date.toLocaleString(getUiLanguage())}`;
 };
 
 const getCountryFlagUrl = (country) => {
@@ -634,7 +720,8 @@ const hideCountryTooltip = () => {
 const googleSheetUrl =
   "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZAaYyJck9_vimowPV1-3MaQqX2Dbw/export?format=csv";
 
-fetchSheetCsv()
+const loadSheetProfiles = (options = {}) =>
+  fetchSheetCsv(options)
   .then((csv) => {
     const rows = parseCsv(csv);
     const headers = rows[0] || [];
@@ -655,6 +742,9 @@ fetchSheetCsv()
       h.toLowerCase().includes("teilnehmer"),
     );
 
+    countryProfiles = {};
+    normalizedCountryProfiles = {};
+
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (row[countryIndex]) {
@@ -671,12 +761,16 @@ fetchSheetCsv()
     }
     fillAdminCountrySelect();
     fillCountryPickers();
+    renderMapSummary();
+    renderCacheStatus(options.forceRefresh ? "network" : "");
     updateActiveCountryHighlights();
   })
   .catch((error) => {
     console.error("Fehler beim Laden der Google Sheet:", error);
     showCountrySearchMessage(getUiText("loadError"));
   });
+
+loadSheetProfiles();
 
 closeBtn?.addEventListener("click", () => {
   sidePanel.classList.remove("side-panel-open");
@@ -708,6 +802,10 @@ const openCountry = (country) => {
   startyear.innerText = formatProfileValue(profile.startYear);
   trainingcount.innerText = formatProfileValue(profile.trainingCount);
   participantcount.innerText = formatProfileValue(profile.participantCount);
+  if (countryCompareLink) {
+    countryCompareLink.href = `compare.html?country=${encodeURIComponent(localizedCountryName)}`;
+    countryCompareLink.textContent = `${localizedCountryName} vergleichen`;
+  }
   loading.classList.add("hide");
   container.classList.remove("hide");
 };
@@ -755,9 +853,13 @@ const resetMapView = () => {
   panY = 0;
   selectedActiveCountryKeys.clear();
   showActiveCountries = true;
+  currentMapFilter = "all";
+  currentMapFilterMin = 0;
   if (activeCountriesCheckbox) activeCountriesCheckbox.checked = true;
   if (countrySearchInput) countrySearchInput.value = "";
   if (mobileCountrySelect) mobileCountrySelect.value = "";
+  if (mapFilterSelect) mapFilterSelect.value = "all";
+  if (mapFilterMin) mapFilterMin.value = "";
   clearCountrySearchMessage();
   sidePanel?.classList.remove("side-panel-open");
   updateZoom();
@@ -788,6 +890,29 @@ mobileCountrySelect?.addEventListener("change", () => {
 });
 
 mapResetButton?.addEventListener("click", resetMapView);
+
+mapFilterSelect?.addEventListener("change", () => {
+  currentMapFilter = mapFilterSelect.value;
+  if (mapFilterMin) {
+    mapFilterMin.disabled = currentMapFilter === "all" || currentMapFilter === "missing";
+  }
+  updateActiveCountryHighlights();
+});
+
+mapFilterMin?.addEventListener("input", () => {
+  currentMapFilterMin = Number.parseFloat(mapFilterMin.value) || 0;
+  updateActiveCountryHighlights();
+});
+
+sheetRefreshButton?.addEventListener("click", async () => {
+  sheetRefreshButton.disabled = true;
+  if (cacheStatus) cacheStatus.textContent = "Daten werden aktualisiert...";
+  try {
+    await loadSheetProfiles({ forceRefresh: true });
+  } finally {
+    sheetRefreshButton.disabled = false;
+  }
+});
 
 adminLoginButton?.addEventListener("click", openAdminModal);
 adminCloseButton?.addEventListener("click", closeAdminModal);

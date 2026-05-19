@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Floorball4all</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero-banner">
+    <button class="language-switch-button" type="button" aria-label="Zu Englisch wechseln">
+      <span class="ui-icon" aria-hidden="true">◉</span>
+      <span>English</span>
+    </button>
+    <div class="banner-content">
+      <h1>Dashboard</h1>
+      <p>Alle Floorball4all-Projektzahlen auf einen Blick.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="index.html#world" class="banner-button">Zur Weltkarte</a>
+        <a href="compare.html" class="banner-button"><span class="ui-icon" aria-hidden="true">▦</span> Länder vergleichen</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="compare-container dashboard-container">
+    <section class="dashboard-metrics" aria-label="Kennzahlen">
+      <article class="metric-card"><span>Aktive Länder</span><strong class="dashboard-countries">0</strong></article>
+      <article class="metric-card"><span>Trainer</span><strong class="dashboard-trainers">0</strong></article>
+      <article class="metric-card"><span>Trainings</span><strong class="dashboard-trainings">0</strong></article>
+      <article class="metric-card"><span>Teilnehmende</span><strong class="dashboard-participants">0</strong></article>
+    </section>
+
+    <section class="table-section">
+      <h2>Top Länder</h2>
+      <div class="table-wrapper">
+        <table class="comparison-table dashboard-table">
+          <thead>
+            <tr>
+              <th>Land</th>
+              <th>Trainer</th>
+              <th>Trainings</th>
+              <th>Teilnehmende</th>
+              <th>Vergleich</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="info-section">
+      <p class="loading-info"><span class="loading-dot" aria-hidden="true"></span> Daten werden geladen...</p>
+    </section>
+  </main>
+
+  <div class="cookie-consent" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
+    <div class="cookie-consent-panel">
+      <div>
+        <h2 id="cookie-consent-title">Datenschutz, Cookies & Sprache</h2>
+        <p>
+          Wir verwenden nur technisch notwendige lokale Speicherung, um deine
+          Cookie- und Sprachauswahl zu merken. Es werden keine Tracking-Cookies gesetzt.
+        </p>
+        <fieldset class="language-choice" aria-labelledby="language-choice-title">
+          <legend id="language-choice-title">Sprache wählen</legend>
+          <label>
+            <input class="language-choice-input" type="radio" name="site-language" value="de" />
+            <span>Deutsch</span>
+          </label>
+          <label>
+            <input class="language-choice-input" type="radio" name="site-language" value="en" />
+            <span>Englisch</span>
+          </label>
+        </fieldset>
+      </div>
+      <div class="cookie-consent-actions">
+        <button class="cookie-consent-decline" type="button">Ablehnen</button>
+        <button class="cookie-consent-accept" type="button">Akzeptieren</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="data.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
