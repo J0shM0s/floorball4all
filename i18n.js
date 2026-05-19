@@ -99,7 +99,7 @@ const floorballTranslations = {
       "It's great to have you here! With this map, I want to give you an insight into the worldwide work of Floorball4all and Unihockey für Strassenkinder. I developed this tool so you can easily discover the positive change created through this sport.",
     heroHow: "How it works:",
     heroCountry:
-      "<strong>Country information at a glance:</strong> Click any country on the map. You will immediately see interesting statistics, current figures, and deeper information about the projects and my work on site.",
+      "<strong>Country information at a glance:</strong> Click any country on the map. You will immediately see interesting statistics, current figures, and deeper information about the projects and the work of Floorball4all on site.",
     heroCompare:
       "<strong>Compare projects:</strong> Want to know how the work differs across regions? Select two countries to compare their statistics directly and analyze the developments.",
     heroOutro:
