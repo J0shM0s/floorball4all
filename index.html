@@ -4,21 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Floorball4all</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header class="hero-banner">
       <button class="language-switch-button" type="button" aria-label="Zu Englisch wechseln">
-        <i class="fas fa-globe"></i>
+        <span class="ui-icon" aria-hidden="true">◎</span>
         <span>English</span>
       </button>
       <button class="admin-login-button" type="button">
-        <i class="fas fa-lock"></i>
+        <span class="ui-icon" aria-hidden="true">#</span>
         Admin Login
       </button>
       <div class="banner-content">
@@ -47,7 +43,7 @@
         </div>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
           <a href="#world" class="banner-button">Zur Weltkarte</a>
-          <a href="compare.html" class="banner-button"><i class="fas fa-chart-bar"></i> Länder vergleichen</a>
+          <a href="compare.html" class="banner-button"><span class="ui-icon" aria-hidden="true">▦</span> Länder vergleichen</a>
           <a href="https://www.floorball4all.ch/de/" class="banner-button">Was ist Floorball4all</a>
         </div>
       </div>
@@ -55,7 +51,7 @@
     <div class="admin-modal hide" role="dialog" aria-modal="true" aria-labelledby="admin-title">
       <div class="admin-panel">
         <button class="admin-close-button" type="button" aria-label="Admin Fenster schliessen">
-          <i class="fas fa-times"></i>
+          <span class="ui-icon" aria-hidden="true">×</span>
         </button>
         <h2 id="admin-title">Admin Bereich</h2>
 
@@ -70,7 +66,7 @@
         <form class="admin-data-form hide">
           <div class="admin-actions">
             <button class="admin-logout-button" type="button">
-              <i class="fas fa-right-from-bracket"></i>
+              <span class="ui-icon" aria-hidden="true">↩</span>
               Ausloggen
             </button>
           </div>
@@ -2184,22 +2180,24 @@
 
     <div class="side-panel">
       <div class="container">
-        <h1 class="country-name">Rumänien</h1>
-        <img src="assets/images/Flags/ro.png" class="country-flag" />
-        <ul>
-          <li>
+        <div class="country-panel-header">
+          <img src="assets/images/Flags/ro.png" class="country-flag" />
+          <h1 class="country-name">Rumänien</h1>
+        </div>
+        <ul class="country-stats">
+          <li class="country-stat">
             <strong>Ausgebildete Trainer:</strong>
             <span class="trainer-count">Seit 2017 175 Trainer</span>
           </li>
-          <li>
+          <li class="country-stat">
             <strong>Seit wie vielen Jahren werden Trainer ausgebildet:</strong>
             <span class="start-year">2013</span>
           </li>
-          <li>
+          <li class="country-stat">
             <strong>Wie viele regelmässige Trainings finden statt:</strong>
             <span class="training-count">17</span>
           </li>
-          <li>
+          <li class="country-stat">
             <strong
               >Wie viele Teilnehmer werden mit den Trainings erreicht:</strong
             >
@@ -2208,7 +2206,7 @@
         </ul>
       </div>
       <button class="close-btn">
-        <i class="fas fa-times"></i>
+        <span class="ui-icon" aria-hidden="true">×</span>
       </button>
       <h2 class="loading hide">Wird geladen...</h2>
     </div>
@@ -2228,7 +2226,7 @@
         />
         <datalist id="country-search-options"></datalist>
         <button class="country-search-button" type="submit" aria-label="Suchen">
-          <i class="fas fa-search"></i>
+          <span class="ui-icon" aria-hidden="true">⌕</span>
         </button>
       </form>
       <p class="country-search-message" aria-live="polite"></p>
@@ -2239,11 +2237,25 @@
         <button class="zoom-in" type="button">+</button>
         <button class="zoom-out" type="button">-</button>
         <button class="map-reset-button" type="button" aria-label="Karte zurücksetzen">
-          <i class="fas fa-rotate-left"></i>
+          <span class="ui-icon" aria-hidden="true">↺</span>
         </button>
         <p class="zoom-value">100%</p>
       </div>
     </div>
+      </section>
+      <section class="mission-section" aria-labelledby="mission-title">
+        <div class="mission-inner">
+          <p class="section-kicker">Floorball4all</p>
+          <h2 id="mission-title">Mit Unihockey einen Unterschied sichtbar machen</h2>
+          <p>
+            Die Datenübersicht zeigt, wo Floorball4all vor Ort wirkt und wie sich die Projektarbeit über Länder hinweg vergleichen lässt.
+            So werden Einsätze, Trainings und Entwicklungen greifbar, ohne die menschliche Arbeit dahinter aus dem Blick zu verlieren.
+          </p>
+          <div class="mission-actions">
+            <a href="https://www.floorball4all.ch/de/unsere-arbeit/projektlaender" class="banner-button primary-button">Projektländer</a>
+            <a href="https://www.floorball4all.ch/de/home" class="banner-button secondary-button">Zur Floorball4all Website</a>
+          </div>
+        </div>
       </section>
     </main>
     <footer class="legal-footer" aria-label="Rechtliche Hinweise">
@@ -2261,16 +2273,16 @@
         <p>
           Quellen: Die Weltkarten-SVG stammt von
           <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>.
-          Flaggen werden ueber die Rest Countries API geladen. Weltkarte und
+          Flaggen werden über Flagcdn geladen. Weltkarte und
           Flaggen werden ausschliesslich zur geografischen Orientierung und
-          Darstellung der Laenderinformationen verwendet. Die jeweiligen Rechte
+          Darstellung der Länderinformationen verwendet. Die jeweiligen Rechte
           und Markenrechte liegen bei den entsprechenden Urhebern bzw.
           Rechteinhabern.
         </p>
         <p>
           Datenschutz: Diese Seite verwendet keine Tracking-Cookies. Die
-          Schrift wird lokal ueber das Betriebssystem geladen, damit fuer Google
-          Fonts keine IP-Adresse an Google uebertragen wird.
+          Schrift wird lokal über das Betriebssystem geladen, damit für Google
+          Fonts keine IP-Adresse an Google übertragen wird.
         </p>
         <p>
           Keine Gewaehr fuer die Richtigkeit, Vollstaendigkeit und Aktualitaet

@@ -1,4 +1,7 @@
 const googleSheetUrl = "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZAaYyJck9_vimowPV1-3MaQqX2Dbw/export?format=csv";
+const sheetCacheKey = "floorball4allSheetCsv";
+const sheetCacheTimeKey = "floorball4allSheetCsvTime";
+const sheetCacheTtl = 15 * 60 * 1000;
 
 let countryData = {};
 let chartInstance = null;
@@ -48,6 +51,51 @@ const parseCsv = (csvText) => {
     return rows;
 };
 
+const getCachedSheetCsv = () => {
+    try {
+        const cachedCsv = localStorage.getItem(sheetCacheKey);
+        const cachedAt = Number(localStorage.getItem(sheetCacheTimeKey));
+        if (!cachedCsv || !cachedAt || Date.now() - cachedAt > sheetCacheTtl) return null;
+        return cachedCsv;
+    } catch (error) {
+        return null;
+    }
+};
+
+const getAnyCachedSheetCsv = () => {
+    try {
+        return localStorage.getItem(sheetCacheKey);
+    } catch (error) {
+        return null;
+    }
+};
+
+const setCachedSheetCsv = (csvText) => {
+    try {
+        localStorage.setItem(sheetCacheKey, csvText);
+        localStorage.setItem(sheetCacheTimeKey, `${Date.now()}`);
+    } catch (error) {
+        console.warn("Sheet-Cache konnte nicht gespeichert werden.", error);
+    }
+};
+
+const fetchSheetCsv = async () => {
+    const cachedCsv = getCachedSheetCsv();
+    if (cachedCsv) return cachedCsv;
+
+    try {
+        const response = await fetch(googleSheetUrl);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const csvText = await response.text();
+        setCachedSheetCsv(csvText);
+        return csvText;
+    } catch (error) {
+        const staleCsv = getAnyCachedSheetCsv();
+        if (staleCsv) return staleCsv;
+        throw error;
+    }
+};
+
 const country1Select = document.getElementById("country1-select");
 const country2Select = document.getElementById("country2-select");
 const tableCountry1 = document.getElementById("table-country1");
@@ -67,8 +115,7 @@ const normalizeCountryName = (name) => {
 
 async function loadCountryData() {
     try {
-        const response = await fetch(googleSheetUrl);
-        const csvText = await response.text();
+        const csvText = await fetchSheetCsv();
         const rows = parseCsv(csvText);
         
         rows.slice(1).forEach((row) => {

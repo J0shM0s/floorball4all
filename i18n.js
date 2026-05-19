@@ -12,17 +12,17 @@ const floorballTranslations = {
       "Schön, dass du da bist! Mit dieser Karte möchte ich dir einen Einblick in die weltweite Arbeit von Floorball4all bzw. Unihockey für Strassenkinder geben. Ich habe dieses Tool entwickelt, damit du die positiven Veränderungen, die durch diesen Sport entstehen, ganz einfach selbst entdecken kannst.",
     heroHow: "So funktioniert es:",
     heroCountry:
-      "<strong>Länder-Infos auf einen Blick:</strong> Klicke einfach auf ein beliebiges Land auf der Karte. Du erhältst sofort spannende Statistiken, aktuelle Zahlen und tiefergehende Informationen zu den Projekten und meiner Arbeit vor Ort.",
+      "<strong>Länder-Infos auf einen Blick:</strong> Klicke einfach auf ein beliebiges Land auf der Karte. Du erhältst sofort spannende Statistiken zu den Projekten und der Arbeit von Floorball4all vor Ort.",
     heroCompare:
       "<strong>Projekte miteinander vergleichen:</strong> Möchtest du wissen, wie sich die Arbeit in verschiedenen Regionen unterscheidet? Wähle einfach zwei Länder aus, um deren Statistiken direkt miteinander zu vergleichen und die Entwicklungen zu analysieren.",
     heroOutro:
       "Tauche ein, klicke dich durch die Kontinente und erfahre, wie Unihockey das Leben von Kindern und Jugendlichen nachhaltig verändert. Viel Spass beim Entdecken!",
     worldButton: "Zur Weltkarte",
-    compareButton: '<i class="fas fa-chart-bar"></i> Länder vergleichen',
+    compareButton: '<span class="ui-icon" aria-hidden="true">▦</span> Länder vergleichen',
     adminTitle: "Admin Bereich",
     password: "Passwort",
     signIn: "Einloggen",
-    logout: '<i class="fas fa-right-from-bracket"></i> Ausloggen',
+    logout: '<span class="ui-icon" aria-hidden="true">↩</span> Ausloggen',
     country: "Land",
     countryInput: "Land eingeben",
     countryDropdown: "Land aus Dropdown auswählen",
@@ -31,10 +31,10 @@ const floorballTranslations = {
     regularTrainings: "Regelmässige Trainings",
     reachedParticipants: "Erreichte Teilnehmer",
     saveData: "Daten speichern",
-    panelTrainers: "Ausgebildete Trainer:",
-    panelStart: "Seit wie vielen Jahren werden Trainer ausgebildet:",
-    panelTrainings: "Wie viele regelmässige Trainings finden statt:",
-    panelParticipants: "Wie viele Teilnehmer werden mit den Trainings erreicht:",
+    panelTrainers: "Ausgebildete Trainer",
+    panelStart: "Trainer-Ausbildung seit",
+    panelTrainings: "Regelmässige Trainings",
+    panelParticipants: "Erreichte Teilnehmer",
     loading: "Wird geladen...",
     activeCountries: "Aktive Länder zeigen",
     searchCountry: "Land suchen",
@@ -47,7 +47,7 @@ const floorballTranslations = {
     author: "Autor und Umsetzung: Joshua Moser.",
     contact: 'Kontakt: <a href="mailto:moser.joshuam.00@gmail.com">moser.joshuam.00@gmail.com</a>',
     sources:
-      'Quellen: Die Weltkarten-SVG stammt von <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>. Flaggen werden über die Rest Countries API geladen. Weltkarte und Flaggen werden ausschliesslich zur geografischen Orientierung und Darstellung der Länderinformationen verwendet. Die jeweiligen Rechte und Markenrechte liegen bei den entsprechenden Urhebern bzw. Rechteinhabern.',
+      'Quellen: Die Weltkarten-SVG stammt von <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>. Flaggen werden über Flagcdn geladen. Weltkarte und Flaggen werden ausschliesslich zur geografischen Orientierung und Darstellung der Länderinformationen verwendet. Die jeweiligen Rechte und Markenrechte liegen bei den entsprechenden Urhebern bzw. Rechteinhabern.',
     privacy:
       "Datenschutz: Diese Seite verwendet keine Tracking-Cookies. Die Schrift wird lokal über das Betriebssystem geladen, damit für Google Fonts keine IP-Adresse an Google übertragen wird.",
     disclaimer: "Keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der dargestellten Daten.",
@@ -62,7 +62,7 @@ const floorballTranslations = {
     accept: "Akzeptieren",
     compareTitle: "Ländervergleich",
     compareSubtitle: "Vergleiche die Floorball-Daten verschiedener Länder",
-    back: '<i class="fas fa-arrow-left"></i> Zurück',
+    back: '<span class="ui-icon" aria-hidden="true">←</span> Zurück',
     country1: "Land 1",
     country2: "Land 2",
     chooseCountry: "Bitte ein Land wählen...",
@@ -72,7 +72,13 @@ const floorballTranslations = {
     trainers: "Trainer",
     trainings: "Trainings",
     participants: "Teilnehmer",
-    loadingData: '<i class="fas fa-spinner fa-spin"></i> Daten werden geladen...',
+    loadingData: '<span class="loading-dot" aria-hidden="true"></span> Daten werden geladen...',
+    missionKicker: "Floorball4all",
+    missionTitle: "Mit Unihockey einen Unterschied sichtbar machen",
+    missionText:
+      "Die Datenübersicht zeigt, wo Floorball4all vor Ort wirkt und wie sich die Projektarbeit über Länder hinweg vergleichen lässt. So werden Einsätze, Trainings und Entwicklungen greifbar, ohne die menschliche Arbeit dahinter aus dem Blick zu verlieren.",
+    missionPrimary: "Projektländer",
+    missionSecondary: "Zur Floorball4all Website",
     loadError: "Fehler beim Laden der Daten!",
     noData: "Keine Angabe",
     syncAdded: "fehlende Länder wurden ins Google Sheet ergänzt.",
@@ -105,11 +111,11 @@ const floorballTranslations = {
     heroOutro:
       "Dive in, click through the continents, and discover how floorball sustainably changes the lives of children and young people. Have fun exploring!",
     worldButton: "Go to world map",
-    compareButton: '<i class="fas fa-chart-bar"></i> Compare countries',
+    compareButton: '<span class="ui-icon" aria-hidden="true">▦</span> Compare countries',
     adminTitle: "Admin Area",
     password: "Password",
     signIn: "Sign in",
-    logout: '<i class="fas fa-right-from-bracket"></i> Sign out',
+    logout: '<span class="ui-icon" aria-hidden="true">↩</span> Sign out',
     country: "Country",
     countryInput: "Enter country",
     countryDropdown: "Select country from dropdown",
@@ -118,10 +124,10 @@ const floorballTranslations = {
     regularTrainings: "Regular training sessions",
     reachedParticipants: "Reached participants",
     saveData: "Save data",
-    panelTrainers: "Trained coaches:",
-    panelStart: "For how many years coaches have been trained:",
-    panelTrainings: "How many regular training sessions take place:",
-    panelParticipants: "How many participants are reached through training:",
+    panelTrainers: "Trained coaches",
+    panelStart: "Coach training since",
+    panelTrainings: "Regular training sessions",
+    panelParticipants: "Reached participants",
     loading: "Loading...",
     activeCountries: "Show active countries",
     searchCountry: "Search country",
@@ -134,7 +140,7 @@ const floorballTranslations = {
     author: "Author and implementation: Joshua Moser.",
     contact: 'Contact: <a href="mailto:moser.joshuam.00@gmail.com">moser.joshuam.00@gmail.com</a>',
     sources:
-      'Sources: The world map SVG comes from <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>. Flags are loaded via the Rest Countries API. The world map and flags are used only for geographic orientation and to display country information. All respective rights and trademarks belong to their owners.',
+      'Sources: The world map SVG comes from <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>. Flags are loaded via Flagcdn. The world map and flags are used only for geographic orientation and to display country information. All respective rights and trademarks belong to their owners.',
     privacy:
       "Privacy: This page does not use tracking cookies. The font is loaded locally through the operating system, so no IP address is transmitted to Google for Google Fonts.",
     disclaimer: "No guarantee is given for the accuracy, completeness, or timeliness of the displayed data.",
@@ -149,7 +155,7 @@ const floorballTranslations = {
     accept: "Accept",
     compareTitle: "Country comparison",
     compareSubtitle: "Compare Floorball data from different countries",
-    back: '<i class="fas fa-arrow-left"></i> Back',
+    back: '<span class="ui-icon" aria-hidden="true">←</span> Back',
     country1: "Country 1",
     country2: "Country 2",
     chooseCountry: "Please choose a country...",
@@ -159,7 +165,13 @@ const floorballTranslations = {
     trainers: "Coaches",
     trainings: "Training sessions",
     participants: "Participants",
-    loadingData: '<i class="fas fa-spinner fa-spin"></i> Loading data...',
+    loadingData: '<span class="loading-dot" aria-hidden="true"></span> Loading data...',
+    missionKicker: "Floorball4all",
+    missionTitle: "Making a difference visible through floorball",
+    missionText:
+      "The data overview shows where Floorball4all is active on site and how project work can be compared across countries. It makes activities, training sessions, and developments easier to understand while keeping the people behind the work in view.",
+    missionPrimary: "Project countries",
+    missionSecondary: "Floorball4all website",
     loadError: "Error loading data!",
     noData: "No data",
     syncAdded: "missing countries were added to the Google Sheet.",
@@ -220,7 +232,7 @@ const updateLanguageSwitchButtons = (language) => {
     const nextLanguageLabel = language === "en" ? "Deutsch" : "English";
     button.setAttribute("aria-label", t("switchLanguage"));
     button.setAttribute("title", t("switchLanguage"));
-    button.innerHTML = `<i class="fas fa-globe"></i><span>${nextLanguageLabel}</span>`;
+    button.innerHTML = `<span class="ui-icon" aria-hidden="true">◎</span><span>${nextLanguageLabel}</span>`;
   });
 };
 
@@ -238,7 +250,7 @@ const applyTranslations = () => {
 
   if (document.querySelector(".world-map-section")) {
     document.title = t("homeTitle");
-    setHtml(".admin-login-button", `<i class="fas fa-lock"></i> ${t("adminLogin")}`);
+    setHtml(".admin-login-button", `<span class="ui-icon" aria-hidden="true">#</span> ${t("adminLogin")}`);
     setText(".banner-content h1", "heroTitle");
     setText(".banner-intro h2", "heroIntroTitle");
     setText(".banner-intro p:nth-of-type(1)", "heroIntro");
@@ -279,6 +291,11 @@ const applyTranslations = () => {
     setHtml(".legal-footer-inner p:nth-child(4)", "sources");
     setText(".legal-footer-inner p:nth-child(5)", "privacy");
     setText(".legal-footer-inner p:nth-child(6)", "disclaimer");
+    setText(".mission-section .section-kicker", "missionKicker");
+    setText("#mission-title", "missionTitle");
+    setText(".mission-section p:nth-of-type(2)", "missionText");
+    setText(".mission-actions .primary-button", "missionPrimary");
+    setText(".mission-actions .secondary-button", "missionSecondary");
   }
 
   if (document.querySelector(".compare-container")) {

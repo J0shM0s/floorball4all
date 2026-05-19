@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ländervergleich - Floorball4all</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,13 +11,13 @@
 <body>
     <header class="hero-banner">
         <button class="language-switch-button" type="button" aria-label="Zu Englisch wechseln">
-            <i class="fas fa-globe"></i>
+            <span class="ui-icon" aria-hidden="true">◎</span>
             <span>English</span>
         </button>
         <div class="banner-content">
             <h1>Ländervergleich</h1>
             <p>Vergleiche die Floorball-Daten verschiedener Länder</p>
-            <a href="index.html" class="banner-button"><i class="fas fa-arrow-left"></i> Zurück</a>
+            <a href="index.html" class="banner-button"><span class="ui-icon" aria-hidden="true">←</span> Zurück</a>
         </div>
     </header>
 
@@ -84,7 +83,7 @@
         </section>
 
         <section class="info-section">
-            <p class="loading-info"><i class="fas fa-spinner fa-spin"></i> Daten werden geladen...</p>
+            <p class="loading-info"><span class="loading-dot" aria-hidden="true"></span> Daten werden geladen...</p>
         </section>
     </main>
 

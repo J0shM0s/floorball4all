@@ -32,19 +32,36 @@ const adminStartInput = document.querySelector(".admin-start-input");
 const adminTrainingInput = document.querySelector(".admin-training-input");
 const adminParticipantInput = document.querySelector(".admin-participant-input");
 const adminMessage = document.querySelector(".admin-message");
+const sheetCacheKey = "floorball4allSheetCsv";
+const sheetCacheTimeKey = "floorball4allSheetCsvTime";
+const sheetCacheTtl = 15 * 60 * 1000;
 
 let zoomLevel = 1;
+let panX = 0;
+let panY = 0;
+let isMapDragging = false;
+let suppressNextCountryClick = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragOriginX = 0;
+let dragOriginY = 0;
 const zoomStep = 0.1;
 const minZoom = 0.5;
 const maxZoom = 2;
-map.style.transformOrigin = "top center";
+map.style.transformOrigin = "center center";
+
+const applyMapTransform = () => {
+  map.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+  map.classList.toggle("map-zoomed", zoomLevel > 1);
+};
 
 const updateZoom = () => {
   zoomValueOutput.innerText = `${Math.round(zoomLevel * 100)}%`;
-  map.style.transform = `scale(${zoomLevel})`;
-  if (worldMapSection) {
-    worldMapSection.style.minHeight = `${85 * zoomLevel}vh`;
+  if (zoomLevel <= 1) {
+    panX = 0;
+    panY = 0;
   }
+  applyMapTransform();
   zoomInBtn.disabled = zoomLevel >= maxZoom;
   zoomOutBtn.disabled = zoomLevel <= minZoom;
 };
@@ -59,23 +76,69 @@ zoomOutBtn?.addEventListener("click", () => {
   updateZoom();
 });
 
+map.addEventListener("pointerdown", (event) => {
+  if (zoomLevel <= 1 || event.button !== 0) return;
+  isMapDragging = true;
+  suppressNextCountryClick = false;
+  dragStartX = event.clientX;
+  dragStartY = event.clientY;
+  dragOriginX = panX;
+  dragOriginY = panY;
+  map.classList.add("map-dragging");
+  map.setPointerCapture(event.pointerId);
+});
+
+map.addEventListener("pointermove", (event) => {
+  if (!isMapDragging) return;
+  const nextPanX = dragOriginX + event.clientX - dragStartX;
+  const nextPanY = dragOriginY + event.clientY - dragStartY;
+  if (Math.abs(nextPanX - dragOriginX) > 3 || Math.abs(nextPanY - dragOriginY) > 3) {
+    suppressNextCountryClick = true;
+  }
+  panX = nextPanX;
+  panY = nextPanY;
+  applyMapTransform();
+});
+
+map.addEventListener("pointerup", (event) => {
+  if (!isMapDragging) return;
+  isMapDragging = false;
+  map.classList.remove("map-dragging");
+  try {
+    map.releasePointerCapture(event.pointerId);
+  } catch (error) {
+    // Pointer capture may already be gone when the browser ends the gesture.
+  }
+});
+
+map.addEventListener("pointercancel", (event) => {
+  isMapDragging = false;
+  map.classList.remove("map-dragging");
+  try {
+    map.releasePointerCapture(event.pointerId);
+  } catch (error) {
+    // Pointer capture may already be gone when the browser cancels the gesture.
+  }
+});
+
 updateZoom();
 const trainercount = document.querySelector(".trainer-count");
 const startyear = document.querySelector(".start-year");
 const trainingcount = document.querySelector(".training-count");
 const participantcount = document.querySelector(".participant-count");
 const mapResetButton = document.querySelector(".map-reset-button");
+if (activeCountriesCheckbox) activeCountriesCheckbox.checked = true;
 
 let countryProfiles = {};
 let normalizedCountryProfiles = {};
-let showActiveCountries = false;
+let showActiveCountries = true;
 let adminCountriesSynced = false;
 const selectedActiveCountryKeys = new Set();
-const defaultCountryFill = "#000000";
+const defaultCountryFill = "#173044";
 const hoverCountryFill = "#ffffff";
 const activeCountryFill = "#e5a92e";
-const defaultCountryStroke = "#000000";
-const activeCountryStroke = "#000000";
+const defaultCountryStroke = "#31536a";
+const activeCountryStroke = "#061e2d";
 const defaultCountryStrokeWidth = "0.4";
 const activeCountryStrokeWidth = "1.4";
 const getUiText = (key) => window.floorballI18n?.t(key) || key;
@@ -165,6 +228,51 @@ const callAdminApi = async (payload) => {
   return result;
 };
 
+const getCachedSheetCsv = () => {
+  try {
+    const cachedCsv = localStorage.getItem(sheetCacheKey);
+    const cachedAt = Number(localStorage.getItem(sheetCacheTimeKey));
+    if (!cachedCsv || !cachedAt || Date.now() - cachedAt > sheetCacheTtl) return null;
+    return cachedCsv;
+  } catch (error) {
+    return null;
+  }
+};
+
+const getAnyCachedSheetCsv = () => {
+  try {
+    return localStorage.getItem(sheetCacheKey);
+  } catch (error) {
+    return null;
+  }
+};
+
+const setCachedSheetCsv = (csvText) => {
+  try {
+    localStorage.setItem(sheetCacheKey, csvText);
+    localStorage.setItem(sheetCacheTimeKey, `${Date.now()}`);
+  } catch (error) {
+    console.warn("Sheet-Cache konnte nicht gespeichert werden.", error);
+  }
+};
+
+const fetchSheetCsv = async () => {
+  const cachedCsv = getCachedSheetCsv();
+  if (cachedCsv) return cachedCsv;
+
+  try {
+    const response = await fetch(googleSheetUrl);
+    if (!response.ok) throw new Error("Network response was not ok");
+    const csvText = await response.text();
+    setCachedSheetCsv(csvText);
+    return csvText;
+  } catch (error) {
+    const staleCsv = getAnyCachedSheetCsv();
+    if (staleCsv) return staleCsv;
+    throw error;
+  }
+};
+
 const getSelectedAdminCountry = () =>
   (adminCountryInput?.value || adminCountrySelect?.value || "").trim();
 
@@ -179,7 +287,7 @@ const fillAdminCountrySelect = () => {
   const placeholderOption = document.createElement("option");
   placeholderOption.value = "";
   placeholderOption.textContent =
-    getUiLanguage() === "en" ? "Select country from dropdown" : "Land aus Dropdown waehlen";
+    getUiLanguage() === "en" ? "Select country from dropdown" : "Land aus Dropdown wählen";
   adminCountrySelect.appendChild(placeholderOption);
 
   countryNames.forEach((countryName) => {
@@ -466,6 +574,7 @@ const updateCountryFill = (country) => {
   const shouldHighlight =
     selectedActiveCountryKeys.has(getCountryKey(country)) ||
     (showActiveCountries && isActiveCountry(country));
+  country.classList.toggle("active-country", shouldHighlight);
   country.style.fill = shouldHighlight ? activeCountryFill : defaultCountryFill;
   country.style.stroke = shouldHighlight
     ? activeCountryStroke
@@ -479,11 +588,53 @@ const updateActiveCountryHighlights = () => {
   countries.forEach(updateCountryFill);
 };
 
+const getCountryFlagUrl = (country) => {
+  const countryCode = country.getAttribute("id");
+  if (!countryCode || !/^[A-Z]{2}$/.test(countryCode)) return "";
+  return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
+};
+
+const countryTooltip = document.createElement("div");
+countryTooltip.className = "country-tooltip";
+countryTooltip.setAttribute("aria-hidden", "true");
+countryTooltip.innerHTML = `
+  <img class="country-tooltip-flag" alt="" />
+  <span class="country-tooltip-name"></span>
+`;
+worldMapSection?.appendChild(countryTooltip);
+const countryTooltipFlag = countryTooltip.querySelector(".country-tooltip-flag");
+const countryTooltipName = countryTooltip.querySelector(".country-tooltip-name");
+
+const positionCountryTooltip = (event) => {
+  if (!worldMapSection || !countryTooltip) return;
+  const sectionBounds = worldMapSection.getBoundingClientRect();
+  const offset = 14;
+  countryTooltip.style.left = `${event.clientX - sectionBounds.left + offset}px`;
+  countryTooltip.style.top = `${event.clientY - sectionBounds.top + offset}px`;
+};
+
+const showCountryTooltip = (country, event) => {
+  const flagUrl = getCountryFlagUrl(country);
+  countryTooltipName.textContent = getLocalizedCountryName(country);
+  if (flagUrl) {
+    countryTooltipFlag.src = flagUrl;
+    countryTooltipFlag.hidden = false;
+  } else {
+    countryTooltipFlag.src = "";
+    countryTooltipFlag.hidden = true;
+  }
+  countryTooltip.classList.add("show");
+  positionCountryTooltip(event);
+};
+
+const hideCountryTooltip = () => {
+  countryTooltip.classList.remove("show");
+};
+
 const googleSheetUrl =
   "https://docs.google.com/spreadsheets/d/1iBUeTag4z7L6-jZAaYyJck9_vimowPV1-3MaQqX2Dbw/export?format=csv";
 
-fetch(googleSheetUrl)
-  .then((response) => response.text())
+fetchSheetCsv()
   .then((csv) => {
     const rows = parseCsv(csv);
     const headers = rows[0] || [];
@@ -518,7 +669,6 @@ fetch(googleSheetUrl)
         normalizedCountryProfiles[normalizeCountryName(countryName)] = profile;
       }
     }
-    console.log("Daten von Google Sheet geladen:", countryProfiles);
     fillAdminCountrySelect();
     fillCountryPickers();
     updateActiveCountryHighlights();
@@ -542,52 +692,24 @@ const openCountry = (country) => {
   container.classList.add("hide");
   loading.classList.remove("hide");
 
-  const clickedCountryName = getCountryName(country);
   const localizedCountryName = getLocalizedCountryName(country);
+  const flagUrl = getCountryFlagUrl(country);
+  const profile = getCountryProfile(country);
 
   sidePanel.classList.add("side-panel-open");
-  countryFlagOutput.src = "";
   countryFlagOutput.alt = localizedCountryName;
-
-  fetch(
-    `https://restcountries.com/v3.1/name/${encodeURIComponent(clickedCountryName)}?fullText=true`,
-  )
-    .then((response) => {
-      if (!response.ok) throw new Error("Network response was not ok");
-      return response.json();
-    })
-    .then((data) => {
-      const countryData = data[0] || {};
-      const profile = getCountryProfile(country);
-
-      countryNameOutlut.innerText = localizedCountryName;
-      if (countryData.flags?.png || countryData.flags?.svg) {
-        countryFlagOutput.src = countryData.flags.png || countryData.flags.svg;
-      } else {
-        countryFlagOutput.src = "";
-      }
-
-      trainercount.innerText = formatProfileValue(profile.trainerCount);
-      startyear.innerText = formatProfileValue(profile.startYear);
-      trainingcount.innerText = formatProfileValue(profile.trainingCount);
-      participantcount.innerText = formatProfileValue(profile.participantCount);
-
-      loading.classList.add("hide");
-      container.classList.remove("hide");
-    })
-    .catch((error) => {
-      console.error("Error fetching country data:", error);
-      countryNameOutlut.innerText = localizedCountryName;
-      countryFlagOutput.src = "";
-      countryFlagOutput.alt = localizedCountryName;
-      const profile = getCountryProfile(country);
-      trainercount.innerText = formatProfileValue(profile.trainerCount);
-      startyear.innerText = formatProfileValue(profile.startYear);
-      trainingcount.innerText = formatProfileValue(profile.trainingCount);
-      participantcount.innerText = formatProfileValue(profile.participantCount);
-      loading.classList.add("hide");
-      container.classList.remove("hide");
-    });
+  countryFlagOutput.onerror = () => {
+    countryFlagOutput.hidden = true;
+  };
+  countryFlagOutput.src = flagUrl;
+  countryFlagOutput.hidden = !flagUrl;
+  countryNameOutlut.innerText = localizedCountryName;
+  trainercount.innerText = formatProfileValue(profile.trainerCount);
+  startyear.innerText = formatProfileValue(profile.startYear);
+  trainingcount.innerText = formatProfileValue(profile.trainingCount);
+  participantcount.innerText = formatProfileValue(profile.participantCount);
+  loading.classList.add("hide");
+  container.classList.remove("hide");
 };
 
 const findCountryByName = (searchTerm) => {
@@ -629,9 +751,11 @@ const selectCountry = (country) => {
 
 const resetMapView = () => {
   zoomLevel = 1;
+  panX = 0;
+  panY = 0;
   selectedActiveCountryKeys.clear();
-  showActiveCountries = false;
-  if (activeCountriesCheckbox) activeCountriesCheckbox.checked = false;
+  showActiveCountries = true;
+  if (activeCountriesCheckbox) activeCountriesCheckbox.checked = true;
   if (countrySearchInput) countrySearchInput.value = "";
   if (mobileCountrySelect) mobileCountrySelect.value = "";
   clearCountrySearchMessage();
@@ -797,17 +921,28 @@ countries.forEach((country) => {
   country.setAttribute("role", "button");
   country.setAttribute("aria-label", getLocalizedCountryName(country));
 
-  country.addEventListener("mouseenter", function () {
+  country.addEventListener("mouseenter", function (event) {
     if (!selectedActiveCountryKeys.has(getCountryKey(this))) {
       this.style.fill = hoverCountryFill;
     }
+    showCountryTooltip(this, event);
+  });
+
+  country.addEventListener("mousemove", function (event) {
+    positionCountryTooltip(event);
   });
 
   country.addEventListener("mouseout", function () {
     updateCountryFill(this);
+    hideCountryTooltip();
   });
 
-  country.addEventListener("click", function () {
+  country.addEventListener("click", function (event) {
+    if (suppressNextCountryClick) {
+      event.preventDefault();
+      suppressNextCountryClick = false;
+      return;
+    }
     selectCountry(this);
   });
 
