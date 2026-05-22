@@ -34,15 +34,42 @@
         </nav>
       </header>
 
+      <section class="archive-player" aria-label="Ausgewählter Inhalt">
+        <div class="archive-player-top">
+          <div>
+            <p class="section-kicker">Aktuell</p>
+            <h2 class="archive-current-title">Featured</h2>
+          </div>
+          <button class="archive-fullscreen-button" type="button">Vollbild</button>
+        </div>
+        <section class="archive-frame-wrap" aria-label="Eingebettete Seite">
+          <iframe
+            class="archive-frame"
+            title="Archivinhalt"
+            src="about:blank"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write"
+            allowfullscreen
+          ></iframe>
+        </section>
+      </section>
+
       <section class="archive-toolbar" aria-label="Auswahl">
         <div class="archive-tabs" role="tablist" aria-label="Archiv Bereiche">
           <a class="archive-tab archive-back-tab" href="index.html">Zurück</a>
           <button class="archive-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="archive-featured-panel" data-archive-tab="featured">Featured</button>
+          <button class="archive-tab" type="button" role="tab" aria-selected="false" aria-controls="archive-recent-panel" data-archive-tab="recent">Zuletzt</button>
           <button class="archive-tab" type="button" role="tab" aria-selected="false" aria-controls="archive-list-panel" data-archive-tab="list">Übersicht</button>
         </div>
 
         <div class="archive-tab-panel" id="archive-featured-panel" role="tabpanel">
           <div class="archive-featured-links" aria-label="Featured"></div>
+        </div>
+
+        <div class="archive-tab-panel hide" id="archive-recent-panel" role="tabpanel">
+          <p class="archive-recent-empty">Noch keine gespeicherten Spiele.</p>
+          <div class="archive-recent-grid" aria-label="Zuletzt gespielt"></div>
         </div>
 
         <div class="archive-tab-panel hide" id="archive-list-panel" role="tabpanel">
@@ -57,18 +84,6 @@
           <p class="archive-count" aria-live="polite"></p>
           <div class="archive-grid" aria-label="Übersicht"></div>
         </div>
-      </section>
-
-      <section class="archive-frame-wrap" aria-label="Eingebettete Seite">
-        <iframe
-          class="archive-frame"
-          title="Archivinhalt"
-          src="about:blank"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-          allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write"
-          allowfullscreen
-        ></iframe>
       </section>
     </section>
   </main>

@@ -1,4 +1,6 @@
 ﻿const archiveUnlockKey = "floorball4all_archive_unlocked";
+const archiveHistoryKey = "floorball4all_archive_history";
+const archiveLastItemKey = "floorball4all_archive_last_item";
 const archiveCode = "0000";
 const archiveBaseUrl = ["https://sites.google.com", "view", "ubg66"].join("/");
 const archiveHomeUrl = `${archiveBaseUrl}/home`;
@@ -241,6 +243,11 @@ const featuredLinkList = document.querySelector(".archive-featured-links");
 const archiveTabs = document.querySelectorAll(".archive-tab");
 const archiveTabPanels = document.querySelectorAll(".archive-tab-panel");
 const archiveFrame = document.querySelector(".archive-frame");
+const archivePlayer = document.querySelector(".archive-player");
+const currentTitle = document.querySelector(".archive-current-title");
+const fullscreenButton = document.querySelector(".archive-fullscreen-button");
+const recentGrid = document.querySelector(".archive-recent-grid");
+const recentEmpty = document.querySelector(".archive-recent-empty");
 const sourceLink = document.querySelector(".archive-source-link");
 
 const isUnlocked = () => {
@@ -273,39 +280,87 @@ const toItemPath = (name) =>
 
 const getThumbnailUrl = (url) => `${thumbnailBaseUrl}${url}`;
 
+const readStoredJson = (key, fallback) => {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch (error) {
+    return fallback;
+  }
+};
+
+const writeStoredJson = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn("Speichern nicht möglich.", error);
+  }
+};
+
+const loadLastArchiveItem = () => readStoredJson(archiveLastItemKey, featuredLinks[0]);
+
+const saveArchiveItem = ({ name, url }) => {
+  const history = readStoredJson(archiveHistoryKey, []);
+  const existingItem = history.find((item) => item.url === url);
+  const nextItem = {
+    name,
+    url,
+    openedAt: new Date().toISOString(),
+    playCount: (existingItem?.playCount || 0) + 1,
+  };
+  const nextHistory = [nextItem, ...history.filter((item) => item.url !== url)].slice(0, 24);
+
+  writeStoredJson(archiveHistoryKey, nextHistory);
+  writeStoredJson(archiveLastItemKey, nextItem);
+  renderRecentItems();
+};
+
+const handleImageError = (image, name) => {
+  image.hidden = true;
+  image.closest(".archive-card-image")?.setAttribute("data-fallback", name.slice(0, 2).toUpperCase());
+};
+
 const createArchiveCard = ({ name, url, isFeatured = false }) => {
   const button = document.createElement("button");
   button.type = "button";
   button.className = isFeatured ? "archive-card archive-card-featured" : "archive-card";
   button.innerHTML = `
-    <span class="archive-card-image">
+    <span class="archive-card-image" data-fallback="${name.slice(0, 2).toUpperCase()}">
       <img src="${getThumbnailUrl(url)}" alt="" loading="lazy" />
     </span>
     <span class="archive-card-title">${name}</span>
   `;
-  button.addEventListener("click", () => openUrl(url));
+  button.querySelector("img")?.addEventListener("error", (event) => {
+    handleImageError(event.currentTarget, name);
+  });
+  button.addEventListener("click", () => openUrl(url, name));
   return button;
 };
 
 const openItem = (name) => {
   const itemName = `${name || ""}`.trim();
   if (!itemName) {
-    archiveFrame.src = archiveHomeUrl;
+    openUrl(archiveHomeUrl, "Archiv");
     return;
   }
 
-  archiveFrame.src = toItemPath(itemName);
+  openUrl(toItemPath(itemName), itemName);
 };
 
-const openUrl = (url) => {
+const openUrl = (url, name = "Archiv", options = {}) => {
   archiveFrame.src = url;
+  if (currentTitle) currentTitle.textContent = name;
+  if (options.save !== false) {
+    saveArchiveItem({ name, url });
+  }
+  archivePlayer?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 const showArchive = () => {
   lockSection?.classList.add("hide");
   archiveArea?.classList.remove("hide");
   if (archiveFrame?.getAttribute("src") === "about:blank") {
-    archiveFrame.src = featuredLinks[0].url;
+    const lastItem = loadLastArchiveItem();
+    openUrl(lastItem.url, lastItem.name, { save: false });
   }
 };
 
@@ -322,9 +377,7 @@ const activateArchiveTab = (tabName) => {
   });
 
   archiveTabPanels.forEach((panel) => {
-    const isFeaturedPanel = panel.id === "archive-featured-panel";
-    const shouldShow = tabName === "featured" ? isFeaturedPanel : !isFeaturedPanel;
-    panel.classList.toggle("hide", !shouldShow);
+    panel.classList.toggle("hide", panel.id !== `archive-${tabName}-panel`);
   });
 };
 
@@ -353,6 +406,20 @@ const renderArchiveGrid = () => {
   }
 };
 
+const renderRecentItems = () => {
+  if (!recentGrid) return;
+
+  const history = readStoredJson(archiveHistoryKey, []);
+  recentGrid.innerHTML = "";
+  history.forEach((item) => {
+    recentGrid.appendChild(createArchiveCard(item));
+  });
+
+  if (recentEmpty) {
+    recentEmpty.hidden = history.length > 0;
+  }
+};
+
 const renderItemPickers = () => {
   if (featuredLinkList) {
     featuredLinkList.innerHTML = "";
@@ -371,6 +438,7 @@ const renderItemPickers = () => {
   }
 
   renderArchiveGrid();
+  renderRecentItems();
 };
 
 lockForm?.addEventListener("submit", (event) => {
@@ -397,6 +465,19 @@ searchInput?.addEventListener("input", renderArchiveGrid);
 
 archiveTabs.forEach((tab) => {
   tab.addEventListener("click", () => activateArchiveTab(tab.dataset.archiveTab));
+});
+
+fullscreenButton?.addEventListener("click", async () => {
+  const target = archiveFrame || document.querySelector(".archive-frame-wrap");
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+      return;
+    }
+    await target.requestFullscreen();
+  } catch (error) {
+    console.warn("Vollbildmodus konnte nicht geöffnet werden.", error);
+  }
 });
 
 renderItemPickers();
