@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Archiv - Floorball4all</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="archive-page">
+  <main class="archive-shell">
+    <section class="archive-lock" aria-labelledby="archive-lock-title">
+      <form class="archive-lock-form">
+        <p class="section-kicker">Admin</p>
+        <h1 id="archive-lock-title">Geschützter Bereich</h1>
+        <label>
+          Code
+          <input class="archive-code-input" type="password" inputmode="numeric" autocomplete="off" required />
+        </label>
+        <button class="admin-submit-button" type="submit">Öffnen</button>
+        <p class="archive-message" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="archive-area hide" aria-labelledby="archive-title">
+      <header class="archive-header">
+        <div>
+          <p class="section-kicker">Secret URL</p>
+          <h1 id="archive-title">Archiv</h1>
+        </div>
+        <nav class="archive-actions" aria-label="Interne Navigation">
+          <a class="banner-button secondary-button" href="index.html">Zurück</a>
+          <a class="banner-button archive-source-link" href="#" target="_blank" rel="noopener noreferrer">Quelle öffnen</a>
+        </nav>
+      </header>
+
+      <section class="archive-toolbar" aria-label="Auswahl">
+        <div class="archive-tabs" role="tablist" aria-label="Archiv Bereiche">
+          <a class="archive-tab archive-back-tab" href="index.html">Zurück</a>
+          <button class="archive-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="archive-featured-panel" data-archive-tab="featured">Featured</button>
+          <button class="archive-tab" type="button" role="tab" aria-selected="false" aria-controls="archive-list-panel" data-archive-tab="list">Übersicht</button>
+        </div>
+
+        <div class="archive-tab-panel" id="archive-featured-panel" role="tabpanel">
+          <div class="archive-featured-links" aria-label="Featured"></div>
+        </div>
+
+        <div class="archive-tab-panel hide" id="archive-list-panel" role="tabpanel">
+          <form class="archive-search-form" role="search">
+            <label>
+              Suche
+              <input class="archive-search-input" type="search" placeholder="z.B. Slope, Run 3, 2048" list="archive-list" />
+            </label>
+            <button class="admin-submit-button" type="submit">Suchen</button>
+          </form>
+          <datalist id="archive-list"></datalist>
+          <p class="archive-count" aria-live="polite"></p>
+          <div class="archive-grid" aria-label="Übersicht"></div>
+        </div>
+      </section>
+
+      <section class="archive-frame-wrap" aria-label="Eingebettete Seite">
+        <iframe
+          class="archive-frame"
+          title="Archivinhalt"
+          src="about:blank"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write"
+          allowfullscreen
+        ></iframe>
+      </section>
+    </section>
+  </main>
+
+  <script src="archive.js"></script>
+</body>
+</html>

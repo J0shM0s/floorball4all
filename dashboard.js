@@ -1,8 +1,37 @@
-const tools = window.floorballData;
+﻿const tools = window.floorballData;
 const loadingInfo = document.querySelector(".loading-info");
 const tableBody = document.querySelector(".dashboard-table tbody");
 const exportButton = document.querySelector(".dashboard-export-button");
+const adminLoginButton = document.querySelector(".admin-login-button");
+const adminModal = document.querySelector(".admin-modal");
+const adminCloseButton = document.querySelector(".admin-close-button");
+const adminLoginForm = document.querySelector(".admin-login-form");
+const adminPasswordInput = document.querySelector(".admin-password-input");
+const adminMessage = document.querySelector(".admin-message");
 let dashboardProfiles = [];
+
+const unlockArchivePage = () => {
+  try {
+    sessionStorage.setItem("floorball4all_archive_unlocked", "true");
+    localStorage.setItem("floorball4all_archive_unlocked", "true");
+  } catch (error) {
+    console.warn("Interner Bereich konnte nicht freigeschaltet werden.", error);
+  }
+
+  window.location.href = "archive.html";
+};
+
+const openAdminModal = () => {
+  adminModal?.classList.remove("hide");
+  if (adminMessage) adminMessage.textContent = "";
+  adminPasswordInput?.focus();
+};
+
+const closeAdminModal = () => {
+  adminModal?.classList.add("hide");
+  if (adminPasswordInput) adminPasswordInput.value = "";
+  if (adminMessage) adminMessage.textContent = "";
+};
 
 const setMetric = (selector, value) => {
   const element = document.querySelector(selector);
@@ -75,5 +104,31 @@ const exportDashboardCsv = () => {
 };
 
 exportButton?.addEventListener("click", exportDashboardCsv);
+adminLoginButton?.addEventListener("click", openAdminModal);
+adminCloseButton?.addEventListener("click", closeAdminModal);
+adminModal?.addEventListener("click", (event) => {
+  if (event.target === adminModal) closeAdminModal();
+});
+
+adminLoginForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (adminPasswordInput.value === "0000") {
+    adminPasswordInput.value = "";
+    if (adminMessage) adminMessage.textContent = "Interner Bereich wird geöffnet...";
+    unlockArchivePage();
+    return;
+  }
+
+  if (adminMessage) adminMessage.textContent = "Falscher Code.";
+  adminPasswordInput.select();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !adminModal?.classList.contains("hide")) {
+    closeAdminModal();
+    adminLoginButton?.focus();
+  }
+});
 
 renderDashboard();

@@ -1,4 +1,4 @@
-const floorballLanguageKey = "floorball4allLanguage";
+﻿const floorballLanguageKey = "floorball4allLanguage";
 const floorballPrivacyConsentKey = "floorball4allPrivacyConsent";
 
 const floorballTranslations = {
@@ -16,7 +16,7 @@ const floorballTranslations = {
     heroCompare:
       "<strong>Projekte miteinander vergleichen:</strong> Möchtest du wissen, wie sich die Arbeit in verschiedenen Regionen unterscheidet? Wähle einfach zwei Länder aus, um deren Statistiken direkt miteinander zu vergleichen und die Entwicklungen zu analysieren.",
     heroOutro:
-      "Tauche ein, klicke dich durch die Kontinente und erfahre, wie Unihockey das Leben von Kindern und Jugendlichen nachhaltig verändert. Viel Spass beim Entdecken!",
+      "Tauche ein, klicke dich durch die Kontinente und erfahre, wie Unihockey das Leben von Kindern und Jugendlichen nachhaltig verändert. Viel Spaß beim Entdecken!",
     worldButton: "Zur Weltkarte",
     compareButton: '<span class="ui-icon" aria-hidden="true">▦</span> Länder vergleichen',
     adminTitle: "Admin Bereich",
@@ -28,12 +28,12 @@ const floorballTranslations = {
     countryDropdown: "Land aus Dropdown auswählen",
     trainedCoaches: "Ausgebildete Trainer",
     trainerSince: "Seit wann werden Trainer ausgebildet",
-    regularTrainings: "Regelmässige Trainings",
+    regularTrainings: "Regelmäßige Trainings",
     reachedParticipants: "Erreichte Teilnehmer",
     saveData: "Daten speichern",
     panelTrainers: "Ausgebildete Trainer",
     panelStart: "Trainer-Ausbildung seit",
-    panelTrainings: "Regelmässige Trainings",
+    panelTrainings: "Regelmäßige Trainings",
     panelParticipants: "Erreichte Teilnehmer",
     loading: "Wird geladen...",
     activeCountries: "Aktive Länder zeigen",
@@ -47,7 +47,7 @@ const floorballTranslations = {
     author: "Autor und Umsetzung: Joshua Moser.",
     contact: 'Kontakt: <a href="mailto:moser.joshuam.00@gmail.com">moser.joshuam.00@gmail.com</a>',
     sources:
-      'Quellen: Die Weltkarten-SVG stammt von <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>. Flaggen werden über Flagcdn geladen. Weltkarte und Flaggen werden ausschliesslich zur geografischen Orientierung und Darstellung der Länderinformationen verwendet. Die jeweiligen Rechte und Markenrechte liegen bei den entsprechenden Urhebern bzw. Rechteinhabern.',
+      'Quellen: Die Weltkarten-SVG stammt von <a href="https://simplemaps.com/resources/svg-world" target="_blank" rel="noopener noreferrer">SimpleMaps</a>. Flaggen werden über Flagcdn geladen. Weltkarte und Flaggen werden ausschließlich zur geografischen Orientierung und Darstellung der Länderinformationen verwendet. Die jeweiligen Rechte und Markenrechte liegen bei den entsprechenden Urhebern bzw. Rechteinhabern.',
     privacy:
       "Datenschutz: Diese Seite verwendet keine Tracking-Cookies. Die Schrift wird lokal über das Betriebssystem geladen, damit für Google Fonts keine IP-Adresse an Google übertragen wird.",
     disclaimer: "Keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der dargestellten Daten.",

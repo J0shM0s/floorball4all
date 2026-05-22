@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -13,6 +13,10 @@
       <span class="ui-icon" aria-hidden="true">◉</span>
       <span>English</span>
     </button>
+    <button class="admin-login-button" type="button">
+      <span class="ui-icon" aria-hidden="true">#</span>
+      Admin Login
+    </button>
     <div class="banner-content">
       <h1>Dashboard</h1>
       <p>Alle Floorball4all-Projektzahlen auf einen Blick.</p>
@@ -22,6 +26,23 @@
       </div>
     </div>
   </header>
+
+  <div class="admin-modal hide" role="dialog" aria-modal="true" aria-labelledby="dashboard-admin-title">
+    <div class="admin-panel">
+      <button class="admin-close-button" type="button" aria-label="Admin Fenster schließen">
+        <span class="ui-icon" aria-hidden="true">×</span>
+      </button>
+      <h2 id="dashboard-admin-title">Admin Bereich</h2>
+      <form class="admin-login-form">
+        <label>
+          Code
+          <input class="admin-password-input" type="password" inputmode="numeric" autocomplete="off" required />
+        </label>
+        <button class="admin-submit-button" type="submit">Öffnen</button>
+      </form>
+      <p class="admin-message" aria-live="polite"></p>
+    </div>
+  </div>
 
   <main class="compare-container dashboard-container">
     <section class="dashboard-metrics" aria-label="Kennzahlen">
