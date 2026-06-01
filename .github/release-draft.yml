@@ -1,0 +1,9 @@
+release_name: v1.0.0
+body: |
+  # Initial Release
+
+  This is the initial release of the repository **floorball4all**.
+  ### Features:
+  - Main branch contains the first functioning version.
+
+commit_sha: ADD MAIN REF Was
