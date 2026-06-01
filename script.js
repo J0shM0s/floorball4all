@@ -130,7 +130,6 @@ map.addEventListener("pointerup", (event) => {
   try {
     map.releasePointerCapture(event.pointerId);
   } catch (error) {
-    // Pointer capture may already be gone when the browser ends the gesture.
   }
 });
 
@@ -140,7 +139,6 @@ map.addEventListener("pointercancel", (event) => {
   try {
     map.releasePointerCapture(event.pointerId);
   } catch (error) {
-    // Pointer capture may already be gone when the browser cancels the gesture.
   }
 });
 
@@ -684,9 +682,11 @@ const loadSheetProfiles = (options = {}) =>
 
 loadSheetProfiles();
 
-closeBtn?.addEventListener("click", () => {
-  sidePanel.classList.remove("side-panel-open");
-});
+const closeCountryPanel = () => {
+  sidePanel?.classList.remove("side-panel-open");
+};
+
+closeBtn?.addEventListener("click", closeCountryPanel);
 
 activeCountriesCheckbox?.addEventListener("change", () => {
   showActiveCountries = activeCountriesCheckbox.checked;

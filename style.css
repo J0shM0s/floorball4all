@@ -432,25 +432,27 @@ path.active-country {
 
 .close-btn {
   position: absolute;
-  top: 1.5em;
-  right: 1.5em;
-  width: 3em;
-  height: 3em;
-  background: none;
+  top: 1rem;
+  right: 1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  background: rgba(255, 255, 255, 0.08);
   border: none;
+  border-radius: 999px;
   color: #e5a92e;
   cursor: pointer;
-  font-size: 2.5em;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: 200ms;
   padding: 0;
   margin: 0;
+  z-index: 10;
 }
 
 .close-btn .ui-icon {
-  font-size: 2.5em;
+  font-size: 1.2rem;
 }
 
 .close-btn:hover {
@@ -840,8 +842,8 @@ button:disabled {
   .close-btn {
     top: 0.75em;
     right: 0.75em;
-    width: 2.5em;
-    height: 2.5em;
+    width: 2rem;
+    height: 2rem;
   }
 
   .country-flag {
